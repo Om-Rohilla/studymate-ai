@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI - Study Planner</title>
+  <style>
+    /* Design Tokens & CSS Variables */
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #121829;
+      --bg-card: rgba(20, 27, 47, 0.65);
+      --bg-card-hover: rgba(28, 38, 65, 0.85);
+      --border-color: rgba(99, 102, 241, 0.18);
+      --border-hover: rgba(139, 92, 246, 0.4);
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --secondary: #a855f7;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --glass-blur: blur(16px);
+      --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+      --glow-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Style */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 26, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: url(#logo-grad);
+      stroke-width: 2.2;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    nav a {
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text-primary);
+    }
+
+    nav a.active {
+      border-bottom-color: var(--primary);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+
+    .menu-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 2rem;
+      height: calc(100vh - 70px - 2rem);
+    }
+
+    /* Sidebar controls */
+    .sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--card-shadow);
+      overflow-y: auto;
+    }
+
+    .sidebar-section h3 {
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .sidebar-section h3 svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--primary);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-size: 0.825rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    select, input {
+      background: rgba(10, 14, 26, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
+    }
+
+    /* Score tracking card */
+    .schedule-stats-card {
+      background: rgba(10, 14, 26, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 1.25rem;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .schedule-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .schedule-progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .schedule-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    /* Main workspace area */
+    .planner-workspace {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      height: 100%;
+      position: relative;
+    }
+
+    .workspace-header {
+      padding: 1rem 1.5rem;
+      background: rgba(10, 14, 26, 0.5);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .planner-scroll {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    /* Empty state */
+    .planner-empty-screen {
+      text-align: center;
+      max-width: 480px;
+      margin: 6rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .planner-empty-screen svg {
+      width: 80px;
+      height: 80px;
+      stroke: var(--primary);
+      stroke-width: 1.5;
+      fill: none;
+      filter: drop-shadow(0 0 10px rgba(99,102,241,0.2));
+    }
+
+    /* Loader */
+    .planner-loader {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 8rem 0;
+      gap: 1.5rem;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.05);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Schedule block layout styling */
+    .schedule-grid {
+      display: none; /* Block on active play */
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .day-block {
+      background: rgba(10, 14, 26, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: grid;
+      grid-template-columns: 110px 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      transition: var(--transition);
+    }
+
+    .day-block:hover {
+      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .day-block.completed {
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.03);
+    }
+
+    .day-label {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--accent);
+    }
+
+    .day-block.completed .day-label {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .task-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .task-title {
+      font-size: 0.975rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .day-block.completed .task-title {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .task-meta {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 1rem;
+    }
+
+    .meta-badge {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* Custom Checkbox */
+    .checkbox-container {
+      display: block;
+      position: relative;
+      padding-left: 28px;
+      height: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0; width: 0;
+    }
+
+    .checkmark {
+      position: absolute;
+      top: 0; left: 0;
+      height: 20px; width: 20px;
+      background-color: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      transition: var(--transition);
+    }
+
+    .checkbox-container:hover input ~ .checkmark {
+      border-color: var(--primary);
+    }
+
+    .checkbox-container input:checked ~ .checkmark {
+      background-color: var(--success);
+      border-color: var(--success);
+    }
+
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+
+    .checkbox-container input:checked ~ .checkmark:after {
+      display: block;
+    }
+
+    .checkbox-container .checkmark:after {
+      left: 7px; top: 3px;
+      width: 5px; height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    /* Toast */
+    .toast {
+      position: absolute;
+      bottom: 2rem; right: 2rem;
+      background: rgba(16, 185, 129, 0.95);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: none;
+      z-index: 200;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toast svg {
+      width: 18px; height: 18px;
+      fill: none; stroke: currentColor;
+      stroke-width: 2.5;
+    }
+
+    /* Connection status */
+    .config-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 1rem;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 20px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0; height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.1);
+      transition: .3s;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px; width: 12px;
+      left: 3px; bottom: 3px;
+      background-color: var(--text-secondary);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(14px);
+      background-color: white;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow-y: visible;
+      }
+      .sidebar {
+        max-height: 450px;
+      }
+      .planner-workspace {
+        height: 600px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-container {
+        padding: 0 1.5rem;
+      }
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      nav.mobile-active {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 70px;
+        left: 0; right: 0;
+        background: #0d1222;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+        gap: 1.25rem;
+        z-index: 99;
+      }
+      nav.mobile-active a {
+        font-size: 1.05rem;
+        width: 100%;
+        border-bottom: none;
+        padding: 0.25rem 0;
+      }
+      .day-block {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+      .checkbox-container {
+        justify-self: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Gradients -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#a855f7" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <svg viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3" />
+        </svg>
+        <span>StudyMate AI</span>
+      </a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      </button>
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html" class="active">Planner</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Configuration Panel -->
+    <section class="sidebar">
+      <div class="sidebar-section">
+        <h3>
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"/></svg>
+          <span>Planner intake</span>
+        </h3>
+        
+        <form id="planner-form" onsubmit="event.preventDefault();">
+          <div class="form-group">
+            <label for="subjects-input">Subjects (comma-separated)</label>
+            <input type="text" id="subjects-input" placeholder="e.g., Biology, Physics, Calculus" required>
+          </div>
+
+          <div class="form-group">
+            <label for="exam-date">Exam Target Date</label>
+            <input type="date" id="exam-date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="hours-input">Revision Hours / Day</label>
+            <input type="number" id="hours-input" min="1" max="12" value="3" required>
+          </div>
+
+          <div class="form-group">
+            <label for="strategy-select">Study Style Goal</label>
+            <select id="strategy-select">
+              <option value="balanced">Balanced Distribution</option>
+              <option value="paced">Paced (Light Start, Progressive)</option>
+              <option value="cram">Cramming Mode (High Load First)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="generate-btn">
+            Compile Calendar Plan
+          </button>
+        </form>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Progress details</span>
+        </h3>
+        <div class="schedule-stats-card">
+          <div class="schedule-meta">
+            <span class="score-label">Blocks Complete</span>
+            <span class="score-value" id="progress-percent">0%</span>
+          </div>
+          <div class="schedule-progress-bar">
+            <div class="schedule-progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="schedule-meta" style="color: var(--text-muted); font-size: 0.725rem;">
+            <span id="progress-count">0 of 0 slots cleared</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-status">
+        <span>Connect to FastAPI backend</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="backend-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Right Workspace Area -->
+    <section class="planner-workspace">
+      <div class="workspace-header">
+        <h2 style="font-size: 1.025rem; font-weight: 700;" id="planner-meta-title">Revision Coordinator</h2>
+        <span style="font-size:0.8rem; color:var(--text-secondary);" id="time-remaining-lbl">Time Left: N/A</span>
+      </div>
+
+      <div class="planner-scroll">
+        <!-- 1. Empty Screen -->
+        <div class="planner-empty-screen" id="empty-screen">
+          <svg viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
+          <div>
+            <h1 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Organize Study Routine</h1>
+            <p style="font-size: 0.95rem; color: var(--text-secondary);">Fill out target subjects and dates on the intake dashboard to compile a structured daily calendar.</p>
+          </div>
+        </div>
+
+        <!-- 2. Loader -->
+        <div class="planner-loader" id="planner-loader">
+          <div class="spinner"></div>
+          <span style="font-size: 0.95rem; color: var(--text-secondary);">Structuring study slots...</span>
+        </div>
+
+        <!-- 3. Calendar Grid -->
+        <div class="schedule-grid" id="schedule-grid-box">
+          <!-- Dynamically populated day slots -->
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div class="toast" id="toast">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span id="toast-msg">Day logged as complete!</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Toggle mobile nav
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbar = document.getElementById('navbar');
+    menuToggle.addEventListener('click', () => {
+      navbar.classList.toggle('mobile-active');
+    });
+
+    // Elements
+    const plannerForm = document.getElementById('planner-form');
+    const subjectsInput = document.getElementById('subjects-input');
+    const examDateInput = document.getElementById('exam-date');
+    const hoursInput = document.getElementById('hours-input');
+    const strategySelect = document.getElementById('strategy-select');
+    
+    const emptyScreen = document.getElementById('empty-screen');
+    const plannerLoader = document.getElementById('planner-loader');
+    const scheduleGridBox = document.getElementById('schedule-grid-box');
+    
+    const plannerMetaTitle = document.getElementById('planner-meta-title');
+    const timeRemainingLbl = document.getElementById('time-remaining-lbl');
+    
+    const progressPercent = document.getElementById('progress-percent');
+    const progressCount = document.getElementById('progress-count');
+    const progressFill = document.getElementById('progress-fill');
+    
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const backendToggle = document.getElementById('backend-toggle');
+
+    // Load backendToggle setting
+    const backendActive = localStorage.getItem('sm_backend_active') !== 'false';
+    backendToggle.checked = backendActive;
+
+    backendToggle.addEventListener('change', () => {
+      localStorage.setItem('sm_backend_active', String(backendToggle.checked));
+    });
+
+    // Planner state
+    let activePlan = null;
+
+    function showToast(message) {
+      toastMsg.innerText = message;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2000);
+    }
+
+    // Set minimal date limit to today
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      examDateInput.setAttribute('min', today);
+      
+      // Load saved plan
+      const saved = JSON.parse(localStorage.getItem('sm_planner_plan'));
+      if (saved) {
+        activePlan = saved;
+        renderPlan();
+      }
+    });
+
+    // Procedural calendar distribution
+    function compileMockPlan(subjectsStr, dateStr, hoursPerDay, strategy) {
+      const subjects = subjectsStr.split(',').map(s => s.trim()).filter(s => s !== '');
+      const targetDate = new Date(dateStr);
+      const today = new Date();
+      
+      // Clear time elements for clean date math
+      today.setHours(0,0,0,0);
+      targetDate.setHours(0,0,0,0);
+
+      const msDiff = targetDate.getTime() - today.getTime();
+      let daysCount = Math.ceil(msDiff / (1000 * 60 * 60 * 24));
+      
+      // Limit to minimum 1 day and maximum 28 days for offline mock usability
+      if (daysCount <= 0) daysCount = 7;
+      if (daysCount > 28) daysCount = 14;
+
+      const schedule = [];
+      const topicsBySubject = {
+        biology: ["Cellular Respiration", "Photosynthesis cycle", "Genetics & DNA", "Ecology webs", "Protein Synthesis"],
+        physics: ["Quantum Superposition", "Newtonian Force laws", "Electromagnetism", "Thermodynamics", "Wave dynamics"],
+        math: ["Calculus Derivatives", "Matrix equations", "Probability distributions", "Trigonometric curves", "Limits & Series"],
+        cs: ["Binary Search logic", "Quick Sort analysis", "Object Oriented patterns", "Graph structures", "Complexity scales"],
+        default: ["Core definitions", "Practice worksheets", "Concept mapping", "Formula sheets", "Error breakdowns"]
+      };
+
+      for (let day = 1; day <= daysCount; day++) {
+        // Distribute subjects sequentially
+        const subIndex = (day - 1) % subjects.length;
+        const currentSub = subjects[subIndex];
+        
+        // Find suitable topics
+        const cleanSub = currentSub.toLowerCase();
+        let topicList = topicsBySubject.default;
+        if (cleanSub.includes('biol') || cleanSub.includes('sci')) topicList = topicsBySubject.biology;
+        else if (cleanSub.includes('phys')) topicList = topicsBySubject.physics;
+        else if (cleanSub.includes('math') || cleanSub.includes('calc')) topicList = topicsBySubject.math;
+        else if (cleanSub.includes('cs') || cleanSub.includes('code') || cleanSub.includes('prog')) topicList = topicsBySubject.cs;
+
+        const topicIndex = Math.floor((day - 1) / subjects.length) % topicList.length;
+        const currentTopic = topicList[topicIndex];
+
+        // Hours distribution based on strategy
+        let scheduledHours = hoursPerDay;
+        if (strategy === 'cram') {
+          // Cramming mode: Study more in the first half of days
+          scheduledHours = day <= Math.ceil(daysCount / 2) ? Math.min(hoursPerDay + 2, 12) : Math.max(hoursPerDay - 1, 1);
+        } else if (strategy === 'paced') {
+          // Paced mode: Light start, heavy load leading up to the end
+          scheduledHours = day <= Math.ceil(daysCount / 2) ? Math.max(hoursPerDay - 1, 1) : Math.min(hoursPerDay + 1, 12);
+        }
+
+        // Generate target dates for study block
+        const blockDate = new Date(today);
+        blockDate.setDate(today.getDate() + (day - 1));
+        const formattedBlockDate = blockDate.toLocaleDateString([], { month: 'short', day: 'numeric', weekday: 'short' });
+
+        schedule.push({
+          dayNum: day,
+          dateStr: formattedBlockDate,
+          subject: currentSub,
+          topic: currentTopic,
+          hours: scheduledHours,
+          completed: false
+        });
+      }
+
+      return {
+        subjects: subjects,
+        examDateStr: targetDate.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' }),
+        daysRemaining: daysCount,
+        schedule: schedule
+      };
+    }
+
+    // Connect to Backend API
+    async function fetchPlanAPI(subjects, date, hours, strategy) {
+      if (backendToggle.checked) {
+        const token = localStorage.getItem("sm_auth_token");
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        try {
+          const response = await fetch('http://127.0.0.1:8000/api/planner', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ subjects, date, hours: parseInt(hours, 10), strategy })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            return data.plan;
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            showToast(errData.detail || "Server error. Using offline planner.", true);
+            return compileMockPlan(subjects, date, hours, strategy);
+          }
+        } catch (error) {
+          console.error("FastAPI connect error:", error);
+          showToast("Network error. Using offline planner.", true);
+          return compileMockPlan(subjects, date, hours, strategy);
+        }
+      } else {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(compileMockPlan(subjects, date, hours, strategy));
+          }, 1500);
+        });
+      }
+    }
+
+    // Submit form
+    plannerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const subjects = subjectsInput.value;
+      const date = examDateInput.value;
+      const hours = parseInt(hoursInput.value);
+      const strategy = strategySelect.value;
+
+      if (!subjects || !date) return;
+
+      // Hide layout, show loader
+      emptyScreen.style.display = 'none';
+      scheduleGridBox.style.display = 'none';
+      plannerLoader.style.display = 'flex';
+      
+      plannerMetaTitle.innerText = "Generating schedule...";
+      timeRemainingLbl.innerText = "Calculating days...";
+
+      // Fetch
+      activePlan = await fetchPlanAPI(subjects, date, hours, strategy);
+
+      // Stop loader
+      plannerLoader.style.display = 'none';
+      
+      // Render
+      renderPlan();
+      savePlan();
+    });
+
+    function renderPlan() {
+      if (!activePlan) return;
+
+      scheduleGridBox.innerHTML = '';
+      plannerMetaTitle.innerText = `Exam Target: ${activePlan.examDateStr}`;
+      timeRemainingLbl.innerText = `${activePlan.daysRemaining} days remaining`;
+
+      activePlan.schedule.forEach((block, idx) => {
+        const div = document.createElement('div');
+        div.className = `day-block${block.completed ? ' completed' : ''}`;
+        
+        div.innerHTML = `
+          <div class="day-label">${block.dateStr}</div>
+          <div class="task-details">
+            <span class="task-title">${block.subject} - ${block.topic}</span>
+            <div class="task-meta">
+              <span class="meta-badge">${block.hours} study hours</span>
+              <span>Target: Day ${block.dayNum}</span>
+            </div>
+          </div>
+          <div>
+            <label class="checkbox-container">
+              <input type="checkbox" ${block.completed ? 'checked' : ''}>
+              <span class="checkmark"></span>
+            </label>
+          </div>
+        `;
+
+        // Handle checkbox toggles
+        const check = div.querySelector('input');
+        check.addEventListener('change', () => {
+          block.completed = check.checked;
+          if (block.completed) {
+            div.classList.add('completed');
+            showToast("Study block logged as complete!");
+          } else {
+            div.classList.remove('completed');
+          }
+          savePlan();
+          updateProgressUI();
+        });
+
+        scheduleGridBox.appendChild(div);
+      });
+
+      scheduleGridBox.style.display = 'grid';
+      updateProgressUI();
+    }
+
+    function updateProgressUI() {
+      if (!activePlan || activePlan.schedule.length === 0) {
+        progressPercent.innerText = '0%';
+        progressCount.innerText = '0 of 0 slots cleared';
+        progressFill.style.width = '0%';
+        return;
+      }
+
+      const total = activePlan.schedule.length;
+      const completed = activePlan.schedule.filter(b => b.completed).length;
+      const pct = Math.round((completed / total) * 100);
+
+      progressPercent.innerText = `${pct}%`;
+      progressCount.innerText = `${completed} of ${total} slots cleared`;
+      progressFill.style.width = `${pct}%`;
+    }
+
+    function savePlan() {
+      localStorage.setItem('sm_planner_plan', JSON.stringify(activePlan));
+    }
+  </script>
+  <script src="auth-helper.js"></script>
+</body>
+</html>

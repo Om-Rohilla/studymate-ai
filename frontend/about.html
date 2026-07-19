@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI - About Us</title>
+  <style>
+    /* Design Tokens & CSS Variables */
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #121829;
+      --bg-card: rgba(20, 27, 47, 0.65);
+      --bg-card-hover: rgba(28, 38, 65, 0.85);
+      --border-color: rgba(99, 102, 241, 0.18);
+      --border-hover: rgba(139, 92, 246, 0.4);
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --secondary: #a855f7;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --glass-blur: blur(16px);
+      --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+      --glow-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Style */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 26, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: url(#logo-grad);
+      stroke-width: 2.2;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    nav a {
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text-primary);
+    }
+
+    nav a.active {
+      border-bottom-color: var(--primary);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+
+    .menu-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      width: 100%;
+    }
+
+    /* Grid cards layout */
+    .about-section {
+      margin-bottom: 4rem;
+    }
+
+    .about-section h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #f8fafc 30%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .about-section h2 {
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+
+    .about-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 2.5rem;
+    }
+
+    .about-card p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .about-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Specs list */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .spec-item {
+      background: rgba(10, 14, 26, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .spec-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .spec-title svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--primary);
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    .spec-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      background-color: #050810;
+      padding: 3rem 0;
+      margin-top: 6rem;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 4rem;
+    }
+
+    .footer-brand h4 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #f8fafc, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .footer-brand p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      max-width: 320px;
+    }
+
+    .footer-links h5 {
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-primary);
+    }
+
+    .footer-links ul {
+      list-style: none;
+    }
+
+    .footer-links ul li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-links ul li a {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .footer-links ul li a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2rem 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .social-links a {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .social-links a:hover {
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+      transform: translateY(-2px);
+    }
+
+    .social-links svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-container {
+        padding: 0 1.5rem;
+      }
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      nav.mobile-active {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 70px;
+        left: 0; right: 0;
+        background: #0d1222;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+        gap: 1.25rem;
+        z-index: 99;
+      }
+      nav.mobile-active a {
+        font-size: 1.05rem;
+        width: 100%;
+        border-bottom: none;
+        padding: 0.25rem 0;
+      }
+      .footer-container {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Gradients -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#a855f7" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <svg viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3" />
+        </svg>
+        <span>StudyMate AI</span>
+      </a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      </button>
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+        <a href="about.html" class="active">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="about-section">
+      <h1>About StudyMate AI</h1>
+      
+      <div class="about-card">
+        <p><strong>StudyMate AI</strong> is an advanced, offline-compatible AI study suite engineered to assist learners in synthesizing, memorizing, and scheduling coursework. Built using a light, high-performance web structure, the application functions autonomously directly from your local filesystem or links directly to a FastAPI server backend.</p>
+        <p>Our philosophy focuses on active recall and structured memory strategies. By providing customized conversational personas, procedurally compiled outline notes, randomized MCQ worksheets, 3D memory flipping decks, and calendar schedulers, we create a unified toolkit for students preparing for finals, certifications, or self-guided curriculum blocks.</p>
+      </div>
+
+      <h2>Technical Specifications</h2>
+      <div class="about-card" style="padding: 1.5rem 2.5rem 2.5rem 2.5rem;">
+        <p>StudyMate AI uses zero framework overhead, ensuring it renders instantly on any mobile device or browser frame without downloading massive node dependencies or web bundles.</p>
+        
+        <div class="specs-grid">
+          <div class="spec-item">
+            <div class="spec-title">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/></svg>
+              <span>100% Vanilla Stack</span>
+            </div>
+            <div class="spec-desc">Structured strictly in standard HTML5, clean vanilla CSS3 modules, and local JavaScript scripts. Built without heavy React runtime stacks or Webpack packers.</div>
+          </div>
+
+          <div class="spec-item">
+            <div class="spec-title">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 .621-.504 1.125-1.125 1.125H4.875c-.621 0-1.125-.504-1.125-1.125v-1.5c0-.621.504-1.125 1.125-1.125h14.25c.621 0 1.125.504 1.125 1.125v1.5zM6 12a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V12zm0 4.5a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-.008z"/></svg>
+              <span>LocalStorage State</span>
+            </div>
+            <div class="spec-desc">Session caching uses HTML5 LocalStorage configurations. Saved summaries, chat configurations, quiz records, and check marks persist securely on the client machine.</div>
+          </div>
+
+          <div class="spec-item">
+            <div class="spec-title">
+              <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72M6.75 18h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .414.336.75.75.75z"/></svg>
+              <span>FastAPI Link Ready</span>
+            </div>
+            <div class="spec-desc">All scripts include clear API wrappers pointing to localhost ports. Toggling backend triggers standard async/await REST fetch calls passing JSON data streams.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h4>StudyMate AI</h4>
+        <p>Combining interactive AI personas, instant notes compiling, customized mock testing, flippable memory decks, and dynamic calendar grids in one self-contained client app.</p>
+      </div>
+      <div class="footer-links">
+        <h5>Study Tools</h5>
+        <ul>
+          <li><a href="tutor.html">AI Chat Tutor</a></li>
+          <li><a href="notes.html">Notes Generator</a></li>
+          <li><a href="quiz.html">Quiz Generator</a></li>
+          <li><a href="flashcards.html">Flippable Flashcards</a></li>
+          <li><a href="planner.html">Study Planner</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About StudyMate</a></li>
+          <li><a href="contact.html">Contact & Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 StudyMate AI. All rights reserved. Self-contained Offline Mode.</span>
+      <div class="social-links">
+        <a href="#" aria-label="Twitter">
+          <svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+        </a>
+        <a href="#" aria-label="Github">
+          <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.5-1.4-1.9-1.4-1.9-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1a1.7 1.7 0 0 1 .5-1.1c-2.7-.3-5.5-1.3-5.5-6A4.7 4.7 0 0 1 5 9.6a4.4 4.4 0 0 1 .1-3.3s.9-.3 3 1.1a10.4 10.4 0 0 1 5.5 0c2.1-1.4 3-1.1 3-1.1a4.4 4.4 0 0 1 .2 3.3 4.7 4.7 0 0 1 1.2 3.3c0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Navigation Hamburger
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbar = document.getElementById('navbar');
+    menuToggle.addEventListener('click', () => {
+      navbar.classList.toggle('mobile-active');
+    });
+  </script>
+  <script src="auth-helper.js"></script>
+</body>
+</html>

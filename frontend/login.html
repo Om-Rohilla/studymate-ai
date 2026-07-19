@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Sign In</title>
+  <meta name="description" content="Sign in or create your StudyMate AI account to access personalised AI tutoring, notes, quizzes, and study planning.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design Tokens ──────────────────────────────────────────────────────── */
+    :root {
+      --bg-primary:       #0a0e1a;
+      --bg-secondary:     #121829;
+      --bg-card:          rgba(20, 27, 47, 0.65);
+      --border-color:     rgba(99, 102, 241, 0.18);
+      --border-hover:     rgba(139, 92, 246, 0.4);
+      --primary:          #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --secondary:        #a855f7;
+      --accent:           #06b6d4;
+      --success:          #10b981;
+      --danger:           #ef4444;
+      --warning:          #f59e0b;
+      --text-primary:     #f8fafc;
+      --text-secondary:   #94a3b8;
+      --text-muted:       #64748b;
+      --glass-blur:       blur(16px);
+      --card-shadow:      0 12px 40px 0 rgba(0,0,0,0.4);
+      --glow-shadow:      0 0 25px rgba(99,102,241,0.2);
+      --transition:       all 0.3s cubic-bezier(0.4,0,0.2,1);
+      --font:             'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+    }
+
+    a { text-decoration: none; color: var(--primary); font-weight: 600; transition: var(--transition); }
+    a:hover { color: var(--secondary); }
+
+    /* ── Layout ─────────────────────────────────────────────────────────────── */
+    .auth-container { display: flex; width: 100vw; min-height: 100vh; }
+
+    /* Left — Form Panel */
+    .form-panel {
+      flex: 1.1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 4rem 2rem;
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 420px;
+      animation: slideUp 0.55s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 2.5rem;
+    }
+    .brand svg {
+      width: 32px; height: 32px;
+      fill: none;
+      stroke: url(#logo-grad);
+      stroke-width: 2.2;
+      flex-shrink: 0;
+    }
+
+    /* Form header */
+    .form-header { margin-bottom: 1.75rem; }
+    .form-header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .form-header p  { color: var(--text-secondary); font-size: 0.95rem; }
+
+    /* Alerts */
+    .alert {
+      display: none;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.45;
+    }
+    .alert.visible { display: flex; }
+    .alert svg { flex-shrink: 0; margin-top: 1px; }
+    .alert-error   { background: rgba(239,68,68,0.12);  border:1px solid rgba(239,68,68,0.3);  color:#f87171; }
+    .alert-success { background: rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#34d399; }
+
+    /* Form inputs */
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.45rem; }
+    .input-wrap { position: relative; display: flex; align-items: center; }
+    .input-icon {
+      position: absolute;
+      left: 0.95rem;
+      width: 18px; height: 18px;
+      stroke: var(--text-muted);
+      fill: none; stroke-width: 2;
+      transition: stroke 0.2s;
+      pointer-events: none;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.75rem;
+      background: rgba(20,27,47,0.45);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(28,38,65,0.6);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+    .form-input:focus ~ .input-icon { stroke: var(--primary); }
+    .form-input.invalid { border-color: var(--danger); }
+    .field-error { font-size: 0.78rem; color: #f87171; margin-top: 0.35rem; display: none; }
+    .field-error.visible { display: block; }
+
+    /* Password toggle */
+    .pwd-toggle {
+      position: absolute;
+      right: 0.9rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .pwd-toggle:hover { color: var(--text-primary); }
+    .pwd-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    /* Password strength meter */
+    .strength-bar {
+      display: none;
+      margin-top: 0.5rem;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .strength-bar.visible { display: block; }
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease, background 0.3s ease;
+      width: 0%;
+    }
+    .strength-label { font-size: 0.72rem; margin-top: 0.3rem; display: none; }
+    .strength-label.visible { display: block; }
+
+    /* Forgot link */
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 0.82rem;
+      margin-top: 0.45rem;
+      color: var(--text-secondary);
+    }
+    .forgot-link:hover { color: var(--primary); }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--glow-shadow);
+      transition: var(--transition);
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(99,102,241,0.4);
+    }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .spinner.visible { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer toggle */
+    .form-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* Security badge */
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 1.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .security-badge svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── Right — Showcase Panel ───────────────────────────────────────────── */
+    .showcase-panel {
+      flex: 0.9;
+      background: radial-gradient(circle at 80% 20%, #1e293b 0%, #0d1527 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 4rem;
+      position: relative;
+      overflow: hidden;
+      border-left: 1px solid var(--border-color);
+    }
+    .showcase-panel::before {
+      content: '';
+      position: absolute;
+      inset: 5%;
+      background: radial-gradient(circle at 30% 30%, rgba(99,102,241,0.1) 0%, transparent 60%);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.04);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .blob {
+      position: absolute;
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.05));
+      filter: blur(40px);
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .blob-1 { width:300px; height:300px; top:-10%; right:-10%; }
+    .blob-2 { width:250px; height:250px; bottom:-5%; left:-5%; }
+
+    /* Dashboard mockup */
+    .mockup {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(13,20,38,0.7);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+      padding: 1.25rem;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 3rem;
+      transform: perspective(1000px) rotateY(-5deg) rotateX(3deg);
+      transition: var(--transition);
+    }
+    .mockup:hover { transform: perspective(1000px) rotateY(0) rotateX(0); }
+
+    .mock-badge {
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 48px; height: 48px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--primary);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(99,102,241,0.3);
+      animation: floatBadge 3s ease-in-out infinite;
+    }
+    .mock-badge svg { width:24px; height:24px; fill:none; stroke:var(--primary); stroke-width:2; }
+    @keyframes floatBadge {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    .mock-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .mock-title {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.82rem; font-weight: 700;
+    }
+    .mock-title span {
+      width:8px; height:8px;
+      background: var(--success);
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .mock-avatar {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+    }
+
+    .mock-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .mock-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+    .mc-label { font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 0.2rem; }
+    .mc-value { font-size: 1.05rem; font-weight: 700; }
+
+    .mock-chart-wrap {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+    .mock-chart-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+    .mock-chart-svg { width: 100%; height: 68px; }
+
+    /* Feature pills */
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      z-index: 2;
+    }
+    .pill {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background: rgba(99,102,241,0.08);
+      color: var(--text-secondary);
+    }
+
+    .showcase-text { text-align: center; max-width: 420px; z-index: 2; }
+    .showcase-text h2 { font-size: 1.55rem; font-weight: 800; margin-bottom: 0.65rem; line-height: 1.25; }
+    .showcase-text p  { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.55; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .showcase-panel { display: none; }
+      .form-panel { flex: 1; padding: 3rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG gradient defs -->
+  <svg style="width:0;height:0;position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%"   stop-color="#6366f1"/>
+        <stop offset="100%" stop-color="#a855f7"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="auth-container">
+
+    <!-- ── Left: Form Panel ──────────────────────────────────────────────── -->
+    <div class="form-panel">
+      <div class="form-card">
+
+        <!-- Brand -->
+        <a href="index.html" class="brand" aria-label="StudyMate AI home">
+          <svg viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3"/>
+          </svg>
+          <span>StudyMate AI</span>
+        </a>
+
+        <!-- Dynamic heading -->
+        <div class="form-header">
+          <h1 id="form-title">Welcome back.</h1>
+          <p  id="form-subtitle">Enter your credentials to continue learning.</p>
+        </div>
+
+        <!-- Server-side alert -->
+        <div class="alert alert-error" id="error-alert" role="alert" aria-live="assertive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M4.93 19h14.14a2 2 0 001.73-3L13.73 5a2 2 0 00-3.46 0L3.2 16a2 2 0 001.73 3z"/>
+          </svg>
+          <span id="error-msg">An error occurred.</span>
+        </div>
+        <div class="alert alert-success" id="success-alert" role="status" aria-live="polite">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span id="success-msg">Success!</span>
+        </div>
+
+        <!-- Auth form -->
+        <form id="auth-form" novalidate>
+
+          <!-- Full Name (signup only) -->
+          <div class="form-group" id="group-name" style="display:none">
+            <label class="form-label" for="input-name">Full Name</label>
+            <div class="input-wrap">
+              <input type="text" id="input-name" class="form-input" placeholder="e.g. Alex Morgan"
+                     autocomplete="name" maxlength="100">
+              <svg class="input-icon" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <div class="field-error" id="err-name"></div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="input-email">Email Address</label>
+            <div class="input-wrap">
+              <input type="email" id="input-email" class="form-input" placeholder="you@example.com"
+                     autocomplete="email" required>
+              <svg class="input-icon" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div class="field-error" id="err-email"></div>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="input-password">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="input-password" class="form-input" placeholder="••••••••"
+                     autocomplete="current-password" required>
+              <svg class="input-icon" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <button type="button" class="pwd-toggle" id="pwd-toggle" aria-label="Toggle password visibility">
+                <svg id="eye-icon" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            <!-- Password strength (shown on signup only) -->
+            <div class="strength-bar"  id="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+            <div class="strength-label" id="strength-label"></div>
+            <div class="field-error" id="err-password"></div>
+            <a href="#" class="forgot-link" id="forgot-link">Forgot your password?</a>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="submit-btn" id="submit-btn">
+            <div class="spinner" id="spinner"></div>
+            <span id="submit-label">Log In</span>
+          </button>
+        </form>
+
+        <!-- Toggle login / register -->
+        <div class="form-footer">
+          <span id="footer-text">Don't have an account?</span>
+          <a href="#" id="toggle-btn" style="margin-left:0.4rem">Sign Up</a>
+        </div>
+
+        <!-- Trust badge -->
+        <div class="security-badge">
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Passwords encrypted with bcrypt · Sessions secured with JWT
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Right: Showcase Panel ─────────────────────────────────────────── -->
+    <div class="showcase-panel">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
+      <!-- Feature pills -->
+      <div class="feature-pills">
+        <span class="pill">AI Tutor</span>
+        <span class="pill">Smart Notes</span>
+        <span class="pill">Quiz Generator</span>
+        <span class="pill">Flashcards</span>
+        <span class="pill">Study Planner</span>
+      </div>
+
+      <!-- CSS Dashboard Mockup -->
+      <div class="mockup">
+        <div class="mock-badge">
+          <svg viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3"/>
+          </svg>
+        </div>
+        <div class="mock-head">
+          <div class="mock-title"><span></span> StudyMate AI Workspace</div>
+          <div class="mock-avatar"></div>
+        </div>
+        <div class="mock-grid">
+          <div class="mock-card">
+            <div class="mc-label">Focus Sessions</div>
+            <div class="mc-value">12 / Week</div>
+          </div>
+          <div class="mock-card">
+            <div class="mc-label">Avg Quiz Score</div>
+            <div class="mc-value" style="color:var(--success)">87%</div>
+          </div>
+        </div>
+        <div class="mock-chart-wrap">
+          <div class="mock-chart-head">
+            <div class="mc-label" style="margin:0">Activity (Hours)</div>
+            <div style="font-size:0.72rem;color:var(--primary);font-weight:700">+14% vs last week</div>
+          </div>
+          <svg class="mock-chart-svg" viewBox="0 0 200 60">
+            <line x1="0" y1="15" x2="200" y2="15" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="35" x2="200" y2="35" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <path d="M0,50 Q25,45 50,20 T100,28 T150,8 T200,18"
+                  fill="none" stroke="url(#cg)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M0,50 Q25,45 50,20 T100,28 T150,8 T200,18 L200,60 L0,60 Z"
+                  fill="url(#cbg)"/>
+            <circle cx="150" cy="8" r="4" fill="var(--accent)"/>
+            <circle cx="150" cy="8" r="8" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.5"/>
+            <defs>
+              <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stop-color="#6366f1"/>
+                <stop offset="50%"  stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#06b6d4"/>
+              </linearGradient>
+              <linearGradient id="cbg" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%"   stop-color="rgba(99,102,241,0.25)"/>
+                <stop offset="100%" stop-color="rgba(99,102,241,0)"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+
+      <div class="showcase-text">
+        <h2>The smartest way to study.</h2>
+        <p>Join StudyMate AI to unlock personalised tutoring, auto-generated notes and quizzes, and a study planner synced to your timeline.</p>
+      </div>
+    </div>
+
+  </div><!-- /.auth-container -->
+
+  <script>
+    "use strict";
+
+    const API_BASE = "http://127.0.0.1:8000/api";
+
+    // ── DOM refs ───────────────────────────────────────────────────────────────
+    const form        = document.getElementById("auth-form");
+    const inputName   = document.getElementById("input-name");
+    const inputEmail  = document.getElementById("input-email");
+    const inputPwd    = document.getElementById("input-password");
+    const pwdToggle   = document.getElementById("pwd-toggle");
+    const eyeIcon     = document.getElementById("eye-icon");
+    const groupName   = document.getElementById("group-name");
+    const forgotLink  = document.getElementById("forgot-link");
+    const submitBtn   = document.getElementById("submit-btn");
+    const submitLabel = document.getElementById("submit-label");
+    const spinner     = document.getElementById("spinner");
+    const toggleBtn   = document.getElementById("toggle-btn");
+    const footerText  = document.getElementById("footer-text");
+    const formTitle   = document.getElementById("form-title");
+    const formSubtitle= document.getElementById("form-subtitle");
+    const errorAlert  = document.getElementById("error-alert");
+    const errorMsg    = document.getElementById("error-msg");
+    const successAlert= document.getElementById("success-alert");
+    const successMsg  = document.getElementById("success-msg");
+    const strengthBar = document.getElementById("strength-bar");
+    const strengthFill= document.getElementById("strength-fill");
+    const strengthLbl = document.getElementById("strength-label");
+
+    // Field error elements
+    const errName = document.getElementById("err-name");
+    const errEmail= document.getElementById("err-email");
+    const errPwd  = document.getElementById("err-password");
+
+    let isSignUp = false;
+
+    // ── Redirect if already logged in ─────────────────────────────────────────
+    (function checkExistingSession() {
+      const token = localStorage.getItem("sm_auth_token");
+      if (!token) return;
+      // Quick local expiry check — parse JWT payload without verifying sig
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp && payload.exp * 1000 > Date.now()) {
+          window.location.replace("index.html");
+        } else {
+          // Token expired — clear stale data
+          localStorage.removeItem("sm_auth_token");
+          localStorage.removeItem("sm_user");
+        }
+      } catch { /* malformed token — ignore and show login form */ }
+    })();
+
+    // ── Toggle login / sign-up mode ────────────────────────────────────────────
+    toggleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      isSignUp = !isSignUp;
+      clearAlerts();
+      clearFieldErrors();
+
+      if (isSignUp) {
+        formTitle.textContent    = "Create your account.";
+        formSubtitle.textContent = "Start learning with personalised AI tools today.";
+        submitLabel.textContent  = "Create Account";
+        footerText.textContent   = "Already have an account?";
+        toggleBtn.textContent    = "Log In";
+        groupName.style.display  = "block";
+        forgotLink.style.display = "none";
+        inputPwd.setAttribute("autocomplete", "new-password");
+        // Show strength meter
+        inputPwd.addEventListener("input", onPasswordInput);
+        strengthBar.classList.add("visible");
+        strengthLbl.classList.add("visible");
+      } else {
+        formTitle.textContent    = "Welcome back.";
+        formSubtitle.textContent = "Enter your credentials to continue learning.";
+        submitLabel.textContent  = "Log In";
+        footerText.textContent   = "Don't have an account?";
+        toggleBtn.textContent    = "Sign Up";
+        groupName.style.display  = "none";
+        forgotLink.style.display = "block";
+        inputPwd.setAttribute("autocomplete", "current-password");
+        inputPwd.removeEventListener("input", onPasswordInput);
+        strengthBar.classList.remove("visible");
+        strengthLbl.classList.remove("visible");
+      }
+    });
+
+    // ── Password visibility toggle ─────────────────────────────────────────────
+    pwdToggle.addEventListener("click", () => {
+      const isHidden = inputPwd.type === "password";
+      inputPwd.type = isHidden ? "text" : "password";
+      eyeIcon.innerHTML = isHidden
+        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+    });
+
+    // ── Password strength meter ─────────────────────────────────────────────────
+    function onPasswordInput() {
+      const v = inputPwd.value;
+      let score = 0;
+      if (v.length >= 8)              score++;
+      if (/[A-Z]/.test(v))            score++;
+      if (/[0-9]/.test(v))            score++;
+      if (/[^A-Za-z0-9]/.test(v))     score++;
+      if (v.length >= 14)             score++;
+
+      const levels = [
+        { pct: "20%",  color: "#ef4444", label: "Very weak" },
+        { pct: "40%",  color: "#f97316", label: "Weak" },
+        { pct: "60%",  color: "#f59e0b", label: "Fair" },
+        { pct: "80%",  color: "#10b981", label: "Strong" },
+        { pct: "100%", color: "#06b6d4", label: "Very strong" },
+      ];
+      const lvl = levels[Math.min(score, 4)];
+      strengthFill.style.width      = lvl.pct;
+      strengthFill.style.background = lvl.color;
+      strengthLbl.textContent       = lvl.label;
+      strengthLbl.style.color       = lvl.color;
+    }
+
+    // ── Forgot password ────────────────────────────────────────────────────────
+    forgotLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      showSuccess("Password reset is coming soon. Please contact support for now.");
+    });
+
+    // ── Client-side validation ─────────────────────────────────────────────────
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    function validateForm() {
+      let valid = true;
+      clearFieldErrors();
+
+      if (isSignUp) {
+        const name = inputName.value.trim();
+        if (!name || name.length < 2) {
+          showFieldError(errName, inputName, "Please enter your full name (at least 2 characters).");
+          valid = false;
+        }
+      }
+
+      if (!EMAIL_RE.test(inputEmail.value.trim())) {
+        showFieldError(errEmail, inputEmail, "Please enter a valid email address.");
+        valid = false;
+      }
+
+      const pwd = inputPwd.value;
+      if (!pwd) {
+        showFieldError(errPwd, inputPwd, "Password is required.");
+        valid = false;
+      } else if (isSignUp) {
+        if (pwd.length < 8) {
+          showFieldError(errPwd, inputPwd, "Password must be at least 8 characters.");
+          valid = false;
+        } else if (!/[A-Z]/.test(pwd)) {
+          showFieldError(errPwd, inputPwd, "Password must contain at least one uppercase letter.");
+          valid = false;
+        } else if (!/[0-9]/.test(pwd)) {
+          showFieldError(errPwd, inputPwd, "Password must contain at least one number.");
+          valid = false;
+        }
+      }
+
+      return valid;
+    }
+
+    // ── Form submission ────────────────────────────────────────────────────────
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearAlerts();
+
+      if (!validateForm()) return;
+
+      setLoading(true);
+
+      try {
+        const endpoint = isSignUp ? "/auth/register" : "/auth/login";
+        const body = isSignUp
+          ? { email: inputEmail.value.trim(), password: inputPwd.value, full_name: inputName.value.trim() }
+          : { email: inputEmail.value.trim(), password: inputPwd.value };
+
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          // 422 = Pydantic validation error
+          const detail = res.status === 422
+            ? (data.detail?.[0]?.msg ?? "Validation failed. Please check your input.")
+            : (data.detail ?? "Authentication failed. Please try again.");
+          throw new Error(detail);
+        }
+
+        // Success — store credentials
+        localStorage.setItem("sm_auth_token", data.token);
+        localStorage.setItem("sm_user", JSON.stringify(data.user));
+
+        // Restore cloud progress
+        await restoreProgress(data.token);
+
+        showSuccess(isSignUp ? "Account created! Redirecting…" : "Logged in! Redirecting…");
+
+        setTimeout(() => { window.location.replace("index.html"); }, 1100);
+
+      } catch (err) {
+        showError(err.message || "An unexpected error occurred. Please try again.");
+        setLoading(false);
+      }
+    });
+
+    // ── Restore cloud-synced progress ──────────────────────────────────────────
+    async function restoreProgress(token) {
+      try {
+        const res = await fetch(`${API_BASE}/auth/sync`, {
+          headers: { "Authorization": `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const d = payload?.sync_data;
+        if (!d) return;
+        if (d.chats)          localStorage.setItem("sm_chats",          d.chats);
+        if (d.notes)          localStorage.setItem("sm_notes",          d.notes);
+        if (d.quiz_highscore) localStorage.setItem("sm_quiz_highscore", d.quiz_highscore);
+        if (d.cards)          localStorage.setItem("sm_cards",          d.cards);
+        if (d.planner_plan)   localStorage.setItem("sm_planner_plan",   d.planner_plan);
+        if (d.tickets)        localStorage.setItem("sm_tickets",        d.tickets);
+      } catch { /* silently ignore — sync is non-critical */ }
+    }
+
+    // ── UI helpers ─────────────────────────────────────────────────────────────
+    function setLoading(on) {
+      submitBtn.disabled      = on;
+      spinner.classList.toggle("visible", on);
+      submitLabel.textContent = on
+        ? (isSignUp ? "Creating account…" : "Logging in…")
+        : (isSignUp ? "Create Account" : "Log In");
+    }
+
+    function showError(msg) {
+      successAlert.classList.remove("visible");
+      errorMsg.textContent = msg;
+      errorAlert.classList.add("visible");
+    }
+
+    function showSuccess(msg) {
+      errorAlert.classList.remove("visible");
+      successMsg.textContent = msg;
+      successAlert.classList.add("visible");
+    }
+
+    function clearAlerts() {
+      errorAlert.classList.remove("visible");
+      successAlert.classList.remove("visible");
+    }
+
+    function showFieldError(el, input, msg) {
+      el.textContent = msg;
+      el.classList.add("visible");
+      input.classList.add("invalid");
+    }
+
+    function clearFieldErrors() {
+      [errName, errEmail, errPwd].forEach(el => el.classList.remove("visible"));
+      [inputName, inputEmail, inputPwd].forEach(el => el.classList.remove("invalid"));
+    }
+
+    // Clear field error on input
+    [inputName, inputEmail, inputPwd].forEach(el => {
+      el.addEventListener("input", () => {
+        el.classList.remove("invalid");
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI - Contact Support</title>
+  <style>
+    /* Design Tokens & CSS Variables */
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #121829;
+      --bg-card: rgba(20, 27, 47, 0.65);
+      --bg-card-hover: rgba(28, 38, 65, 0.85);
+      --border-color: rgba(99, 102, 241, 0.18);
+      --border-hover: rgba(139, 92, 246, 0.4);
+      --primary: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --secondary: #a855f7;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --glass-blur: blur(16px);
+      --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+      --glow-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Style */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+    }
+
+    /* Header Nav */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 26, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: url(#logo-grad);
+      stroke-width: 2.2;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    nav a {
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text-primary);
+    }
+
+    nav a.active {
+      border-bottom-color: var(--primary);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+
+    .menu-toggle svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+    }
+
+    /* Form Container */
+    .contact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .contact-card h1 {
+      font-size: 2rem;
+      background: linear-gradient(to right, #f8fafc 30%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-size: 0.825rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    select, input, textarea {
+      background: rgba(10, 14, 26, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      width: fit-content;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Right Sidebar (Ticket History) */
+    .sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--card-shadow);
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    .sidebar-section h3 {
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.5rem;
+    }
+
+    .sidebar-section h3 svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--primary);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .ticket-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ticket-item {
+      background: rgba(10, 14, 26, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .ticket-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .ticket-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.725rem;
+      color: var(--text-secondary);
+    }
+
+    .ticket-status {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Toast styling */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--success);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: none;
+      z-index: 200;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toast svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      background-color: #050810;
+      padding: 3rem 0;
+      margin-top: 6rem;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 4rem;
+    }
+
+    .footer-brand h4 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #f8fafc, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .footer-brand p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      max-width: 320px;
+    }
+
+    .footer-links h5 {
+      font-size: 1rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-primary);
+    }
+
+    .footer-links ul {
+      list-style: none;
+    }
+
+    .footer-links ul li {
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-links ul li a {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .footer-links ul li a:hover {
+      color: var(--primary);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2rem 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .social-links a {
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .social-links a:hover {
+      background: var(--primary-gradient);
+      color: var(--text-primary);
+      transform: translateY(-2px);
+    }
+
+    .social-links svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-container {
+        padding: 0 1.5rem;
+      }
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      nav.mobile-active {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 70px;
+        left: 0; right: 0;
+        background: #0d1222;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+        gap: 1.25rem;
+        z-index: 99;
+      }
+      nav.mobile-active a {
+        font-size: 1.05rem;
+        width: 100%;
+        border-bottom: none;
+        padding: 0.25rem 0;
+      }
+      .footer-container {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Gradients -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1" />
+        <stop offset="100%" stop-color="#a855f7" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <svg viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3" />
+        </svg>
+        <span>StudyMate AI</span>
+      </a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      </button>
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+        <a href="about.html">About</a>
+        <a href="contact.html" class="active">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Contact Form Card -->
+    <section class="contact-card">
+      <h1>Contact Support & Feedback</h1>
+      <p style="color:var(--text-secondary); font-size: 0.95rem;">Have questions about integrating the FastAPI backend, suggestions for new AI features, or found a bug? Drop us a line below.</p>
+      
+      <form id="contact-form" onsubmit="event.preventDefault();">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contact-name">Full Name</label>
+            <input type="text" id="contact-name" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label for="contact-email">Email Address</label>
+            <input type="email" id="contact-email" placeholder="john@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="contact-category">Inquiry Type</label>
+          <select id="contact-category">
+            <option value="feedback">General Feedback</option>
+            <option value="support">Technical Support</option>
+            <option value="integration">FastAPI/API Help</option>
+            <option value="feature">Feature Suggestion</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="contact-message">Your Message</label>
+          <textarea id="contact-message" rows="6" placeholder="Write your comments or questions here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-submit">
+          Send Message
+        </button>
+      </form>
+    </section>
+
+    <!-- Right Sidebar for Ticket Log -->
+    <section class="sidebar">
+      <div class="sidebar-section">
+        <h3>
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.03 0 1.9.693 2.166 1.638m-7.377 2.47a3 3 0 01-3 3H5.25A2.25 2.25 0 003 11.586V18.75A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V11.586a2.25 2.25 0 00-2.25-2.236h-1.125a3 3 0 01-3-3z"/></svg>
+          <span>Support History</span>
+        </h3>
+        <div class="ticket-list" id="ticket-container">
+          <!-- Dynamically populated submission history -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <h4>StudyMate AI</h4>
+        <p>Combining interactive AI personas, instant notes compiling, customized mock testing, flippable memory decks, and dynamic calendar grids in one self-contained client app.</p>
+      </div>
+      <div class="footer-links">
+        <h5>Study Tools</h5>
+        <ul>
+          <li><a href="tutor.html">AI Chat Tutor</a></li>
+          <li><a href="notes.html">Notes Generator</a></li>
+          <li><a href="quiz.html">Quiz Generator</a></li>
+          <li><a href="flashcards.html">Flippable Flashcards</a></li>
+          <li><a href="planner.html">Study Planner</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="about.html">About StudyMate</a></li>
+          <li><a href="contact.html">Contact & Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 StudyMate AI. All rights reserved. Self-contained Offline Mode.</span>
+      <div class="social-links">
+        <a href="#" aria-label="Twitter">
+          <svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+        </a>
+        <a href="#" aria-label="Github">
+          <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.5-1.4-1.9-1.4-1.9-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1a1.7 1.7 0 0 1 .5-1.1c-2.7-.3-5.5-1.3-5.5-6A4.7 4.7 0 0 1 5 9.6a4.4 4.4 0 0 1 .1-3.3s.9-.3 3 1.1a10.4 10.4 0 0 1 5.5 0c2.1-1.4 3-1.1 3-1.1a4.4 4.4 0 0 1 .2 3.3 4.7 4.7 0 0 1 1.2 3.3c0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast popup -->
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span>Message submitted successfully!</span>
+  </div>
+
+  <script>
+    // Navigation Toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbar = document.getElementById('navbar');
+    menuToggle.addEventListener('click', () => {
+      navbar.classList.toggle('mobile-active');
+    });
+
+    // Form elements
+    const contactForm = document.getElementById('contact-form');
+    const contactName = document.getElementById('contact-name');
+    const contactEmail = document.getElementById('contact-email');
+    const contactCategory = document.getElementById('contact-category');
+    const contactMessage = document.getElementById('contact-message');
+    const btnSubmit = document.getElementById('btn-submit');
+    const toast = document.getElementById('toast');
+    const ticketContainer = document.getElementById('ticket-container');
+
+    // Local storage tickets history list
+    let tickets = JSON.parse(localStorage.getItem('sm_tickets') || '[]');
+
+    function saveTickets() {
+      localStorage.setItem('sm_tickets', JSON.stringify(tickets));
+      renderTickets();
+    }
+
+    function renderTickets() {
+      ticketContainer.innerHTML = '';
+      if (tickets.length === 0) {
+        ticketContainer.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1rem 0;">No active submissions.</div>';
+        return;
+      }
+
+      tickets.forEach((tick) => {
+        const div = document.createElement('div');
+        div.className = 'ticket-item';
+        div.innerHTML = `
+          <div class="ticket-title">${tick.category}</div>
+          <div class="ticket-meta">
+            <span>Ticket ID: #${tick.id}</span>
+            <span class="ticket-status">Received</span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:0.25rem;">
+            ${tick.message}
+          </div>
+        `;
+        ticketContainer.appendChild(div);
+      });
+    }
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const name = contactName.value.trim();
+      const email = contactEmail.value.trim();
+      const category = contactCategory.selectedOptions[0].text;
+      const message = contactMessage.value.trim();
+
+      if (!name || !email || !message) return;
+
+      // Submit animation state
+      btnSubmit.innerText = "Sending Message...";
+      btnSubmit.style.pointerEvents = 'none';
+      btnSubmit.style.opacity = '0.7';
+
+      setTimeout(() => {
+        // Success state
+        btnSubmit.innerText = "Send Message";
+        btnSubmit.style.pointerEvents = 'auto';
+        btnSubmit.style.opacity = '1';
+
+        // Clear Form fields
+        contactForm.reset();
+
+        // Create new ticket object
+        const ticketId = Math.floor(1000 + Math.random() * 9000);
+        tickets.push({
+          id: ticketId,
+          category: category,
+          message: message,
+          timestamp: new Date().toLocaleDateString()
+        });
+        
+        saveTickets();
+
+        // Display toast
+        toast.style.display = 'flex';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 2500);
+
+      }, 1200);
+    });
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTickets();
+    });
+  </script>
+  <script src="auth-helper.js"></script>
+</body>
+</html>
