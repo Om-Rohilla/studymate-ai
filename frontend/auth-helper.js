@@ -25,23 +25,24 @@
   const style = document.createElement("style");
   style.innerHTML = `
     .nav-auth-btn {
-      background: var(--primary-gradient);
-      color: var(--text-primary) !important;
-      padding: 0.5rem 1.25rem;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff !important;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      box-shadow: var(--glow-shadow);
-      transition: var(--transition);
-      border: 1px solid transparent;
-      margin-left: 1rem;
-      font-size: 0.9rem;
+      gap: 0.4rem;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-left: 0.5rem;
+      font-size: 0.8rem;
     }
     .nav-auth-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ffffff !important;
       transform: translateY(-1px);
-      box-shadow: 0 0 20px rgba(99,102,241,0.4);
     }
 
     /* Profile menu */

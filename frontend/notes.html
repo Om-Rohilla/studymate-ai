@@ -12,14 +12,13 @@
       margin: 0 auto;
       padding: 1.25rem 1.5rem;
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 1.25rem;
-      height: calc(100vh - 68px);
       position: relative;
       z-index: 1;
     }
 
-    .sidebar-panel {
+    .config-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
@@ -29,17 +28,6 @@
       gap: 1rem;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      overflow-y: auto;
-    }
-
-    .panel-section-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text-main);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border-subtle);
     }
 
     .form-group {
@@ -54,136 +42,69 @@
       color: var(--text-muted);
     }
 
-    .select-input, .text-input {
+    .textarea-input {
       background: var(--bg-input);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 0.55rem 0.75rem;
+      padding: 0.65rem;
       color: var(--text-main);
       font-family: var(--font-body);
       font-size: 0.82rem;
+      height: 120px;
+      resize: vertical;
       transition: var(--transition);
     }
 
-    .select-input:focus, .text-input:focus {
+    .textarea-input:focus {
       outline: none;
       border-color: var(--border-hover);
       background: var(--bg-input-focus);
     }
 
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      overflow-y: auto;
-      max-height: 200px;
-    }
-
-    .history-item {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 0.5rem 0.75rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: var(--transition);
-      font-size: 0.8rem;
-    }
-
-    .history-item:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--border-hover);
-    }
-
-    .notes-panel {
+    .notes-viewer {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      height: 100%;
-      position: relative;
+      padding: 1.75rem;
+      min-height: 500px;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      flex-direction: column;
     }
 
-    .notes-header {
-      padding: 0.85rem 1.25rem;
-      border-bottom: 1px solid var(--border-subtle);
+    .viewer-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(8, 10, 15, 0.5);
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .action-btn-row {
-      display: flex;
-      gap: 0.4rem;
-    }
-
-    .icon-action-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: var(--transition);
-      font-size: 0.85rem;
-    }
-
-    .icon-action-btn:hover {
-      background: #ffffff;
-      color: #000000;
-      border-color: #ffffff;
-    }
-
-    .notes-viewport {
+    .notes-output {
       flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-      line-height: 1.55;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-main);
     }
 
-    .notes-content h1 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #ffffff; }
-    .notes-content h2 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #ffffff; }
-    .notes-content p { margin-bottom: 0.85rem; color: var(--text-muted); font-size: 0.85rem; }
-    .notes-content ul { margin-left: 1.25rem; margin-bottom: 0.85rem; color: var(--text-muted); font-size: 0.85rem; }
-
-    .toast {
-      position: absolute;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: #ffffff;
-      color: #000000;
-      padding: 0.6rem 1rem;
-      border-radius: var(--radius-md);
-      font-weight: 700;
-      font-size: 0.78rem;
-      display: none;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
+    .notes-output h3 { font-size: 1.15rem; margin-top: 1rem; margin-bottom: 0.4rem; }
+    .notes-output ul { margin-left: 1.2rem; margin-bottom: 1rem; }
+    .notes-output li { margin-bottom: 0.35rem; }
 
     @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; height: auto; }
-      .notes-panel { height: 500px; }
+      main { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
+  <div class="bg-grain"></div>
   <div class="bg-grid"></div>
   <div class="glow-orb orb-1"></div>
   <div class="glow-orb orb-2"></div>
 
-  <!-- Navigation -->
   <header>
     <div class="nav-container">
       <a href="index.html" class="logo">
@@ -209,30 +130,21 @@
   </header>
 
   <main>
-    <aside class="sidebar-panel">
-      <div class="panel-section-title">Notes Builder</div>
+    <aside class="config-card">
+      <h2 style="font-size: 1.15rem; color:#ffffff;">Smart Notes Generator</h2>
+      <p style="font-size: 0.78rem; color:var(--text-muted);">Paste raw lecture transcripts or topic outlines to generate structured study guides.</p>
 
       <div class="form-group">
-        <label class="form-label" for="notes-topic">Topic or Keywords</label>
-        <input type="text" id="notes-topic" class="text-input" placeholder="e.g. Organic Chemistry...">
+        <label class="form-label" for="notes-raw">Raw Input Text</label>
+        <textarea id="notes-raw" class="textarea-input" placeholder="Paste lecture notes or chapter text here..."></textarea>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="subject-select">Subject Category</label>
-        <select id="subject-select" class="select-input">
-          <option value="science">Science & Biology</option>
-          <option value="math">Mathematics</option>
-          <option value="cs">Computer Science</option>
-          <option value="history">History</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="notes-style">Summary Format</label>
-        <select id="notes-style" class="select-input">
-          <option value="detailed">Comprehensive Outline</option>
-          <option value="bullet">Bullet Points Only</option>
-          <option value="exam">Exam Quick Review</option>
+        <label class="form-label" for="notes-format">Output Format</label>
+        <select id="notes-format" class="select-input">
+          <option value="bullet">Structured Bullet Outline</option>
+          <option value="cornell">Cornell Note System</option>
+          <option value="cheatsheet">Formula & Term Sheet</option>
         </select>
       </div>
 
@@ -240,30 +152,40 @@
         <span>Generate Notes</span>
       </button>
 
-      <div class="panel-section-title" style="margin-top:0.3rem;">Saved Library</div>
-      <div class="history-list" id="history-container"></div>
+      <div style="margin-top: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+        <span class="form-label">Recent Saved Notes</span>
+        <div id="saved-notes-list" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+          <div style="font-size:0.75rem; color:var(--text-dim);">No saved guides yet.</div>
+        </div>
+      </div>
     </aside>
 
-    <section class="notes-panel">
-      <div class="notes-header">
-        <h2 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;" id="notes-title-header">Active Notes Viewer</h2>
-        
-        <div class="action-btn-row">
-          <button class="icon-action-btn" id="action-save" title="Save to library">💾</button>
-          <button class="icon-action-btn" id="action-copy" title="Copy to clipboard">📋</button>
-          <button class="icon-action-btn" id="action-download" title="Download text">⬇️</button>
-          <button class="icon-action-btn" id="action-print" title="Print document">🖨️</button>
+    <section class="notes-viewer">
+      <div class="viewer-header">
+        <div>
+          <h2 style="font-size: 1.1rem; color:#ffffff;" id="notes-title">Quantum Mechanics — Chapter 4 Summary</h2>
+          <span style="font-size:0.72rem; color:var(--text-muted);">Format: Structured Outline</span>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-secondary" id="copy-btn" style="padding:0.4rem 0.75rem; font-size:0.75rem;">Copy</button>
+          <button class="btn btn-secondary" id="export-btn" style="padding:0.4rem 0.75rem; font-size:0.75rem;">Export TXT</button>
         </div>
       </div>
 
-      <div class="notes-viewport" id="notes-viewport">
-        <div class="notes-content">
-          <h1>Welcome to Smart Notes</h1>
-          <p>Enter a topic on the left sidebar and click <strong>Generate Notes</strong> to synthesize clean, structured study material.</p>
-        </div>
-      </div>
+      <div class="notes-output" id="notes-output">
+        <h3>1. Wave-Particle Duality</h3>
+        <p>Light and matter display behavior resembling both waves and particles depending on measurement method.</p>
+        <ul>
+          <li><strong>de Broglie Wavelength:</strong> λ = h / p</li>
+          <li><strong>Photoelectric Effect:</strong> Demonstrates particle nature of photons (E = hf).</li>
+        </ul>
 
-      <div class="toast" id="toast">Feedback Toast</div>
+        <h3>2. Heisenberg Uncertainty Principle</h3>
+        <p>It is impossible to simultaneously measure both position (x) and momentum (p) of a particle with absolute precision.</p>
+        <ul>
+          <li><strong>Formula:</strong> Δx · Δp ≥ ℏ / 2</li>
+        </ul>
+      </div>
     </section>
   </main>
 
@@ -272,104 +194,39 @@
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    const generateBtn = document.getElementById('generate-notes-btn');
-    const topicInput = document.getElementById('notes-topic');
-    const subjectSelect = document.getElementById('subject-select');
-    const styleSelect = document.getElementById('notes-style');
-    const notesViewport = document.getElementById('notes-viewport');
-    const notesTitleHeader = document.getElementById('notes-title-header');
+    const genBtn = document.getElementById('generate-notes-btn');
+    const rawInput = document.getElementById('notes-raw');
+    const notesOutput = document.getElementById('notes-output');
+    const copyBtn = document.getElementById('copy-btn');
+    const exportBtn = document.getElementById('export-btn');
 
-    const historyContainer = document.getElementById('history-container');
-    const actionSave = document.getElementById('action-save');
-    const actionCopy = document.getElementById('action-copy');
-    const actionDownload = document.getElementById('action-download');
-    const actionPrint = document.getElementById('action-print');
-    const toast = document.getElementById('toast');
+    genBtn.addEventListener('click', () => {
+      const text = rawInput.value.trim();
+      if (!text) return;
 
-    let currentActiveNotes = null;
-    let savedNotes = JSON.parse(localStorage.getItem('sm_notes') || '[]');
-
-    function showToast(msg) {
-      toast.innerText = msg;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 2200);
-    }
-
-    generateBtn.addEventListener('click', () => {
-      const topic = topicInput.value.trim();
-      if (!topic) { showToast('Please enter a topic name!'); return; }
-
-      const subject = subjectSelect.value;
-      const style = styleSelect.value;
-
-      notesTitleHeader.innerText = `Viewing: ${topic}`;
-      const content = `
-        <div class="notes-content">
-          <h1>${topic}</h1>
-          <p><em>Subject: ${subject.toUpperCase()} | Format: ${style.toUpperCase()}</em></p>
-          <h2>1. Core Concepts</h2>
-          <p>Key foundational principles regarding ${topic}. Designed for fast retention and exam recall.</p>
-          <ul>
-            <li><strong>Principle A:</strong> Primary underlying mechanism driving system states.</li>
-            <li><strong>Principle B:</strong> Secondary relationship between inputs and outputs.</li>
-          </ul>
-        </div>
+      notesOutput.innerHTML = `
+        <h3>AI Synthesized Note Summary</h3>
+        <p>Based on your input notes:</p>
+        <ul>
+          <li><strong>Key Concept 1:</strong> ${text.substring(0, 80)}...</li>
+          <li><strong>Key Concept 2:</strong> Core mathematical formulations and practical examples.</li>
+        </ul>
       `;
-
-      notesViewport.innerHTML = content;
-      currentActiveNotes = { title: topic, subject, style, content };
-      showToast('Notes generated!');
     });
 
-    actionSave.addEventListener('click', () => {
-      if (!currentActiveNotes) { showToast('Generate notes first!'); return; }
-      savedNotes.push(currentActiveNotes);
-      localStorage.setItem('sm_notes', JSON.stringify(savedNotes));
-      renderHistory();
-      showToast('Notes saved to library!');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(notesOutput.innerText);
+      copyBtn.innerText = 'Copied!';
+      setTimeout(() => copyBtn.innerText = 'Copy', 1500);
     });
 
-    actionCopy.addEventListener('click', () => {
-      navigator.clipboard.writeText(notesViewport.innerText);
-      showToast('Copied to clipboard!');
-    });
-
-    actionDownload.addEventListener('click', () => {
-      if (!currentActiveNotes) return;
-      const blob = new Blob([notesViewport.innerText], { type: 'text/plain' });
+    exportBtn.addEventListener('click', () => {
+      const blob = new Blob([notesOutput.innerText], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${currentActiveNotes.title.replace(/\s+/g, '_')}.txt`;
+      a.download = 'StudyMate_Notes.txt';
       a.click();
-      showToast('Download started!');
     });
-
-    actionPrint.addEventListener('click', () => window.print());
-
-    function renderHistory() {
-      historyContainer.innerHTML = '';
-      savedNotes.forEach((n, idx) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `<span>${n.title}</span><button style="background:none;border:none;color:var(--text-muted);cursor:pointer;" onclick="deleteNote(${idx})">&times;</button>`;
-        item.addEventListener('click', (e) => {
-          if (e.target.tagName !== 'BUTTON') {
-            notesViewport.innerHTML = n.content;
-            currentActiveNotes = n;
-            notesTitleHeader.innerText = `Viewing: ${n.title}`;
-          }
-        });
-        historyContainer.appendChild(item);
-      });
-    }
-
-    window.deleteNote = function(idx) {
-      savedNotes.splice(idx, 1);
-      localStorage.setItem('sm_notes', JSON.stringify(savedNotes));
-      renderHistory();
-    };
-
-    window.addEventListener('DOMContentLoaded', renderHistory);
   </script>
   <script src="auth-helper.js"></script>
 </body>

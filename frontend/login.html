@@ -3,17 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMate AI — Sign In & Account</title>
-  <meta name="description" content="Sign in or create your StudyMate AI account to access personalized AI tutoring, notes, quizzes, and study planning.">
+  <title>StudyMate AI — Authentication Studio</title>
   <link rel="stylesheet" href="design-system.css">
 
   <style>
     body {
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1.5rem;
+      position: relative;
+      z-index: 1;
     }
 
     .auth-card {
@@ -23,84 +30,75 @@
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-lg);
       padding: 2.25rem 2rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-      z-index: 1;
       position: relative;
     }
 
-    .brand-header {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 1.75rem;
-      text-decoration: none;
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
     }
 
-    .auth-tabs {
-      display: flex;
-      background: rgba(255, 255, 255, 0.03);
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #ffffff;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
       padding: 3px;
+      border-radius: var(--radius-md);
       margin-bottom: 1.5rem;
     }
 
     .tab-btn {
-      flex: 1;
-      padding: 0.5rem;
       background: transparent;
       border: none;
       color: var(--text-muted);
       font-family: var(--font-body);
       font-size: 0.8rem;
       font-weight: 600;
+      padding: 0.45rem;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      border-radius: 6px;
       transition: var(--transition);
     }
 
     .tab-btn.active {
-      color: #000000;
       background: #ffffff;
-      font-weight: 700;
+      color: #000000;
     }
 
-    .form-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 0.25rem;
-    }
-
-    .form-subtitle {
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      text-align: center;
-      margin-bottom: 1.25rem;
-    }
-
-    .btn-google {
+    .google-btn {
       width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: #ffffff;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.6rem;
-      padding: 0.65rem 1rem;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      color: #ffffff;
-      font-family: var(--font-body);
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
       transition: var(--transition);
+      margin-bottom: 1.25rem;
     }
 
-    .btn-google:hover {
+    .google-btn:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--border-hover);
     }
@@ -110,19 +108,22 @@
       align-items: center;
       margin: 1.25rem 0;
       color: var(--text-dim);
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      text-transform: uppercase;
       letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .divider::before, .divider::after {
-      content: '';
+      content: "";
       flex: 1;
-      border-bottom: 1px solid var(--border-subtle);
+      height: 1px;
+      background: var(--border-subtle);
     }
 
-    .divider span { padding: 0 0.6rem; }
+    .divider span {
+      padding: 0 0.75rem;
+    }
 
     .form-group {
       margin-bottom: 1rem;
@@ -130,7 +131,7 @@
 
     .form-label {
       display: block;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 0.35rem;
@@ -141,10 +142,10 @@
       background: var(--bg-input);
       border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      padding: 0.65rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       color: var(--text-main);
       font-family: var(--font-body);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       transition: var(--transition);
     }
 
@@ -154,138 +155,107 @@
       background: var(--bg-input-focus);
     }
 
-    .btn-submit {
+    .submit-btn {
       width: 100%;
       margin-top: 0.5rem;
-      padding: 0.7rem;
     }
-
-    .status-alert {
-      display: none;
-      padding: 0.6rem 0.85rem;
-      border-radius: var(--radius-md);
-      font-size: 0.78rem;
-      margin-bottom: 1rem;
-    }
-
-    .status-alert.error { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
-    .status-alert.success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; }
   </style>
 </head>
 <body>
 
+  <div class="bg-grain"></div>
   <div class="bg-grid"></div>
   <div class="glow-orb orb-1"></div>
   <div class="glow-orb orb-2"></div>
 
-  <div class="auth-card">
-    <a href="index.html" class="brand-header">
-      <div class="logo-badge">AI</div>
-      <span style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color:#ffffff;">StudyMate</span>
-    </a>
+  <main>
+    <div class="auth-card">
+      <div class="auth-header">
+        <a href="index.html" class="auth-logo">
+          <span class="logo-badge">AI</span>
+          <span>StudyMate</span>
+        </a>
 
-    <!-- Auth Mode Switcher (Tabs) -->
-    <div class="auth-tabs">
-      <button class="tab-btn active" id="tab-login" type="button">Sign In</button>
-      <button class="tab-btn" id="tab-signup" type="button">Create Account</button>
-    </div>
+        <div class="tab-switcher">
+          <button class="tab-btn active" id="tab-signin">Sign In</button>
+          <button class="tab-btn" id="tab-signup">Create Account</button>
+        </div>
 
-    <h1 class="form-title" id="form-title">Welcome back</h1>
-    <p class="form-subtitle" id="form-subtitle">Enter your credentials to access your AI study studio.</p>
-
-    <!-- Social SSO Button -->
-    <button class="btn-google" id="btn-google-sso" type="button">
-      <svg viewBox="0 0 24 24" width="16" height="16">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-      </svg>
-      <span>Continue with Google</span>
-    </button>
-
-    <div class="divider"><span>or with email</span></div>
-
-    <!-- Alert Box -->
-    <div class="status-alert" id="status-alert"></div>
-
-    <!-- Form -->
-    <form id="auth-form">
-      <div class="form-group" id="group-fullname" style="display: none;">
-        <label class="form-label" for="input-fullname">Full Name</label>
-        <input type="text" id="input-fullname" class="input-field" placeholder="Alex Morgan">
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.2rem;" id="form-heading">Welcome back</h2>
+        <p style="font-size: 0.78rem; color: var(--text-muted);" id="form-subheading">Enter your credentials to access your AI study studio.</p>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="input-email">Email Address</label>
-        <input type="email" id="input-email" class="input-field" placeholder="alex@example.com" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="input-password">Password</label>
-        <input type="password" id="input-password" class="input-field" placeholder="••••••••" required>
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-submit" id="btn-submit">
-        <span>Sign In</span>
+      <button class="google-btn" id="google-sso-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continue with Google</span>
       </button>
-    </form>
-  </div>
+
+      <div class="divider">
+        <span>Or with Email</span>
+      </div>
+
+      <form id="auth-form">
+        <div class="form-group" id="name-group" style="display:none;">
+          <label class="form-label" for="full-name">Full Name</label>
+          <input type="text" id="full-name" class="input-field" placeholder="Alex Morgan">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" class="input-field" placeholder="alex@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
+          <span id="submit-text">Sign In</span>
+        </button>
+      </form>
+    </div>
+  </main>
 
   <script>
-    const tabLogin = document.getElementById('tab-login');
+    const tabSignin = document.getElementById('tab-signin');
     const tabSignup = document.getElementById('tab-signup');
-    const formTitle = document.getElementById('form-title');
-    const formSubtitle = document.getElementById('form-subtitle');
-    const groupFullname = document.getElementById('group-fullname');
-    const btnSubmit = document.getElementById('btn-submit');
-    const authForm = document.getElementById('auth-form');
-    const statusAlert = document.getElementById('status-alert');
+    const nameGroup = document.getElementById('name-group');
+    const heading = document.getElementById('form-heading');
+    const subheading = document.getElementById('form-subheading');
+    const submitText = document.getElementById('submit-text');
 
-    let currentMode = 'login';
+    let mode = 'signin';
 
-    tabLogin.addEventListener('click', () => {
-      currentMode = 'login';
-      tabLogin.classList.add('active');
+    tabSignin.addEventListener('click', () => {
+      mode = 'signin';
+      tabSignin.classList.add('active');
       tabSignup.classList.remove('active');
-      formTitle.innerText = 'Welcome back';
-      formSubtitle.innerText = 'Enter your credentials to access your AI study studio.';
-      groupFullname.style.display = 'none';
-      btnSubmit.innerHTML = '<span>Sign In</span>';
+      nameGroup.style.display = 'none';
+      heading.innerText = 'Welcome back';
+      subheading.innerText = 'Enter your credentials to access your AI study studio.';
+      submitText.innerText = 'Sign In';
     });
 
     tabSignup.addEventListener('click', () => {
-      currentMode = 'signup';
+      mode = 'signup';
       tabSignup.classList.add('active');
-      tabLogin.classList.remove('active');
-      formTitle.innerText = 'Create your account';
-      formSubtitle.innerText = 'Join thousands of students learning faster with AI.';
-      groupFullname.style.display = 'block';
-      btnSubmit.innerHTML = '<span>Create Free Account</span>';
+      tabSignin.classList.remove('active');
+      nameGroup.style.display = 'block';
+      heading.innerText = 'Create Account';
+      subheading.innerText = 'Start your AI learning journey in seconds.';
+      submitText.innerText = 'Create Account';
     });
 
-    authForm.addEventListener('submit', (e) => {
+    document.getElementById('auth-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = document.getElementById('input-email').value;
-
-      statusAlert.className = 'status-alert success';
-      statusAlert.style.display = 'block';
-      statusAlert.innerText = currentMode === 'login' ? `Signed in as ${email}` : `Account created for ${email}`;
-
-      localStorage.setItem('sm_auth_token', 'mock_jwt_token_12345');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1000);
-    });
-
-    document.getElementById('btn-google-sso').addEventListener('click', () => {
-      statusAlert.className = 'status-alert success';
-      statusAlert.style.display = 'block';
-      statusAlert.innerText = 'Redirecting to Google SSO...';
-      localStorage.setItem('sm_auth_token', 'mock_google_jwt_token');
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1000);
+      localStorage.setItem('sm_auth_token', 'demo_jwt_token_sample');
+      window.location.href = 'index.html';
     });
   </script>
 </body>

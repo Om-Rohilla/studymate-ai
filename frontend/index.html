@@ -4,18 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>StudyMate AI — Next-Generation AI Study Studio</title>
-  <meta name="description" content="Master any course faster with AI tutors, notes generators, active recall quizzes, and interactive flashcards.">
   <link rel="stylesheet" href="design-system.css">
 
   <style>
-    /* Hero Section */
+    /* Hero & Landing Page Styles */
     .hero-section {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 3.5rem 1.5rem 2.5rem;
+      padding: 4rem 1.5rem 2rem;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2.5rem;
+      gap: 3rem;
       align-items: center;
       position: relative;
       z-index: 1;
@@ -25,24 +24,25 @@
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.25rem 0.75rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-full);
       font-size: 0.75rem;
+      font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
 
+    .badge-pill span { color: #10b981; }
+
     .hero-title {
-      font-size: 2.4rem;
-      line-height: 1.15;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
 
     .hero-subtitle {
-      font-size: 0.9rem;
-      color: var(--text-muted);
+      font-size: 0.95rem;
       margin-bottom: 1.75rem;
       max-width: 480px;
     }
@@ -52,7 +52,6 @@
       gap: 0.75rem;
     }
 
-    /* Engine Preview Box */
     .preview-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -60,7 +59,7 @@
       padding: 1.5rem;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
 
     .window-dots {
@@ -128,11 +127,6 @@
       transform: translateY(-2px);
     }
 
-    .tool-icon {
-      font-size: 1.4rem;
-      margin-bottom: 0.85rem;
-    }
-
     .tool-name {
       font-size: 1rem;
       font-weight: 700;
@@ -153,6 +147,7 @@
 </head>
 <body>
 
+  <div class="bg-grain"></div>
   <div class="bg-grid"></div>
   <div class="glow-orb orb-1"></div>
   <div class="glow-orb orb-2"></div>
@@ -220,37 +215,49 @@
 
     <div class="tools-grid">
       <a href="tutor.html" class="tool-card">
-        <div class="tool-icon">💬</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
         <div class="tool-name">AI Tutor</div>
         <div class="tool-desc">Socratic coaching, ELI5 simplifications, and instant answers tailored to your syllabus.</div>
       </a>
 
       <a href="notes.html" class="tool-card">
-        <div class="tool-icon">📝</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
         <div class="tool-name">Smart Notes</div>
         <div class="tool-desc">Synthesize raw transcripts and slides into structured bullet outlines and formula sheets.</div>
       </a>
 
       <a href="quiz.html" class="tool-card">
-        <div class="tool-icon">⚡</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
         <div class="tool-name">Quiz Generator</div>
         <div class="tool-desc">Generate active recall multiple choice questions with instant explanations.</div>
       </a>
 
       <a href="flashcards.html" class="tool-card">
-        <div class="tool-icon">🃏</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8"/></svg>
+        </div>
         <div class="tool-name">Flashcard Deck</div>
         <div class="tool-desc">Interactive 3D flip card decks for key term memorization and exam review.</div>
       </a>
 
       <a href="planner.html" class="tool-card">
-        <div class="tool-icon">📅</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
         <div class="tool-name">Study Planner</div>
         <div class="tool-desc">Adaptive timeline tracking and milestone schedules for targeted test dates.</div>
       </a>
 
       <a href="login.html" class="tool-card">
-        <div class="tool-icon">🔒</div>
+        <div class="icon-svg">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
         <div class="tool-name">Account Studio</div>
         <div class="tool-desc">Manage your authentication tokens, saved decks, and personal progress history.</div>
       </a>
