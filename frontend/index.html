@@ -3,974 +3,264 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMate AI - Your Intelligent Learning Companion</title>
+  <title>StudyMate AI — Next-Generation AI Study Studio</title>
+  <meta name="description" content="Master any course faster with AI tutors, notes generators, active recall quizzes, and interactive flashcards.">
+  <link rel="stylesheet" href="design-system.css">
+
   <style>
-    /* Design Tokens & CSS Variables */
-    :root {
-      --bg-primary: #0a0e1a;
-      --bg-secondary: #121829;
-      --bg-card: rgba(20, 27, 47, 0.65);
-      --bg-card-hover: rgba(28, 38, 65, 0.85);
-      --border-color: rgba(99, 102, 241, 0.18);
-      --border-hover: rgba(139, 92, 246, 0.4);
-      --primary: #6366f1;
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --secondary: #a855f7;
-      --accent: #06b6d4;
-      --success: #10b981;
-      --danger: #ef4444;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --glass-blur: blur(16px);
-      --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
-      --glow-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* Hero Section */
+    .hero-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+      position: relative;
+      z-index: 1;
     }
 
-    /* Reset & Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
     }
 
-    body {
-      font-family: var(--font-family);
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
+    .hero-title {
+      font-size: 2.4rem;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+      max-width: 480px;
+    }
+
+    .hero-actions {
       display: flex;
-      flex-direction: column;
-      line-height: 1.6;
-      overflow-x: hidden;
+      gap: 0.75rem;
     }
 
-    /* Scrollbar Style */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-primary);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary);
+    /* Engine Preview Box */
+    .preview-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     }
 
-    /* Typography */
-    h1, h2, h3, h4 {
-      font-weight: 700;
-      letter-spacing: -0.025em;
+    .window-dots {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.25rem;
     }
 
-    a {
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .chat-bubble-mock {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.82rem;
+    }
+
+    /* Features Grid */
+    .features-section {
+      max-width: 1100px;
+      margin: 2rem auto 4rem;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .tool-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
       text-decoration: none;
       color: inherit;
       transition: var(--transition);
-    }
-
-    /* Layout Components */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(10, 14, 26, 0.8);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      height: 70px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.35rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .logo svg {
-      width: 28px;
-      height: 28px;
-      fill: none;
-      stroke: url(#logo-grad);
-      stroke-width: 2.2;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 1.75rem;
-    }
-
-    nav a {
-      font-size: 0.925rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      padding: 0.5rem 0;
-      border-bottom: 2px solid transparent;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    nav a:hover, nav a.active {
-      color: var(--text-primary);
-    }
-
-    nav a.active {
-      border-bottom-color: var(--primary);
-    }
-
-    /* Mobile Hamburger Menu button */
-    .menu-toggle {
-      display: none;
-      background: transparent;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 0.25rem;
-    }
-
-    .menu-toggle svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    main {
-      flex: 1;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
-      width: 100%;
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: var(--transition);
-      border: none;
-    }
-
-    .btn-primary {
-      background: var(--primary-gradient);
-      color: var(--text-primary);
-      box-shadow: var(--glow-shadow);
-    }
-
-    .btn-primary:hover {
+    .tool-card:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-hover);
       transform: translateY(-2px);
-      box-shadow: 0 0 30px rgba(99, 102, 241, 0.45);
     }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
+    .tool-icon {
+      font-size: 1.4rem;
+      margin-bottom: 0.85rem;
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--border-hover);
-    }
-
-    /* Hero Section */
-    .hero {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 4rem;
-      align-items: center;
-      padding: 2rem 0 5rem 0;
-    }
-
-    .hero-content h1 {
-      font-size: 3.5rem;
-      line-height: 1.15;
-      margin-bottom: 1.5rem;
-      background: linear-gradient(to right, #f8fafc 40%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-content p {
-      font-size: 1.15rem;
-      color: var(--text-secondary);
-      margin-bottom: 2.5rem;
-      max-width: 580px;
-    }
-
-    .hero-buttons {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .hero-illustration {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
-    .hero-illustration::after {
-      content: '';
-      position: absolute;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-      filter: blur(20px);
-      z-index: -1;
-    }
-
-    .hero-illustration svg {
-      width: 100%;
-      max-width: 380px;
-      height: auto;
-      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
-    }
-
-    /* Stats Dashboard section */
-    .dashboard-preview {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 2rem;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      margin-bottom: 5rem;
-      box-shadow: var(--card-shadow);
-    }
-
-    .dashboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 1rem;
-    }
-
-    .dashboard-title {
-      font-size: 1.25rem;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .dashboard-title svg {
-      width: 20px;
-      height: 20px;
-      stroke: var(--accent);
-      stroke-width: 2;
-      fill: none;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
-    }
-
-    .stat-card {
-      background: rgba(10, 14, 26, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      padding: 1.25rem;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .stat-status {
-      font-size: 0.8rem;
-      color: var(--success);
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      margin-top: 0.25rem;
-    }
-
-    .stat-status.inactive {
-      color: var(--text-muted);
-    }
-
-    /* Feature Grid Section */
-    .features-section h2 {
-      font-size: 2.25rem;
-      text-align: center;
-      margin-bottom: 1rem;
-      background: linear-gradient(to right, #ffffff, #94a3b8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .features-subtitle {
-      text-align: center;
-      color: var(--text-secondary);
-      margin-bottom: 3.5rem;
-      font-size: 1.1rem;
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
-    }
-
-    .feature-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 2.25rem;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      box-shadow: var(--card-shadow);
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(800px circle at var(--x, 0px) var(--y, 0px), rgba(99, 102, 241, 0.08), transparent 40%);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--border-hover);
-      box-shadow: var(--glow-shadow);
-      background: var(--bg-card-hover);
-    }
-
-    .feature-icon-wrapper {
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      background: rgba(99, 102, 241, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1.5rem;
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      color: var(--primary);
-      transition: var(--transition);
-    }
-
-    .feature-card:hover .feature-icon-wrapper {
-      background: var(--primary-gradient);
-      color: white;
-      transform: scale(1.05);
-    }
-
-    .feature-icon-wrapper svg {
-      width: 24px;
-      height: 24px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-    }
-
-    .feature-card h3 {
-      font-size: 1.35rem;
-      margin-bottom: 0.75rem;
-      color: var(--text-primary);
-    }
-
-    .feature-card p {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 1.75rem;
-      flex: 1;
-    }
-
-    .feature-card .btn {
-      width: fit-content;
-      z-index: 2;
-    }
-
-    .card-badge {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.25rem;
-      background: rgba(6, 182, 212, 0.15);
-      border: 1px solid rgba(6, 182, 212, 0.3);
-      color: var(--accent);
-      padding: 0.25rem 0.65rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--border-color);
-      background-color: #050810;
-      padding: 3rem 0;
-      margin-top: 6rem;
-    }
-
-    .footer-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      display: grid;
-      grid-template-columns: 1.5fr 1fr 1fr;
-      gap: 4rem;
-    }
-
-    .footer-brand h4 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, #f8fafc, #a855f7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .footer-brand p {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-      max-width: 320px;
-    }
-
-    .footer-links h5 {
+    .tool-name {
       font-size: 1rem;
-      margin-bottom: 1.25rem;
-      color: var(--text-primary);
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.35rem;
     }
 
-    .footer-links ul {
-      list-style: none;
-    }
-
-    .footer-links ul li {
-      margin-bottom: 0.75rem;
-    }
-
-    .footer-links ul li a {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-    }
-
-    .footer-links ul li a:hover {
-      color: var(--primary);
-    }
-
-    .footer-bottom {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 2rem 0 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      margin-top: 3rem;
-      font-size: 0.85rem;
+    .tool-desc {
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
 
-    .social-links {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .social-links a {
-      color: var(--text-secondary);
-      background: rgba(255, 255, 255, 0.03);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--border-color);
-    }
-
-    .social-links a:hover {
-      background: var(--primary-gradient);
-      color: var(--text-primary);
-      transform: translateY(-2px);
-    }
-
-    .social-links svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 968px) {
-      .hero {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-        text-align: center;
-      }
-      .hero-content h1 {
-        font-size: 2.75rem;
-      }
-      .hero-content p {
-        margin: 0 auto 2rem auto;
-      }
-      .hero-buttons {
-        justify-content: center;
-      }
-      .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .footer-container {
-        grid-template-columns: 1fr;
-        gap: 2.5rem;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .nav-container {
-        padding: 0 1.5rem;
-      }
-      nav {
-        display: none; /* Hide desktop nav */
-      }
-      .menu-toggle {
-        display: block; /* Show hamburger button */
-      }
-      
-      /* Mobile Menu Styles */
-      nav.mobile-active {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 70px;
-        left: 0;
-        right: 0;
-        background: #0d1222;
-        border-bottom: 1px solid var(--border-color);
-        padding: 1.5rem;
-        gap: 1.25rem;
-        z-index: 99;
-      }
-      
-      nav.mobile-active a {
-        font-size: 1.05rem;
-        width: 100%;
-        border-bottom: none;
-        padding: 0.25rem 0;
-      }
-      
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      main {
-        padding: 2rem 1.5rem;
-      }
+    @media (max-width: 900px) {
+      .hero-section { grid-template-columns: 1fr; }
+      .tools-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- SVG Gradients definitions -->
-  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#6366f1" />
-        <stop offset="100%" stop-color="#a855f7" />
-      </linearGradient>
-    </defs>
-  </svg>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
 
+  <!-- Header -->
   <header>
     <div class="nav-container">
       <a href="index.html" class="logo">
-        <!-- SVG brain icon -->
-        <svg viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3" />
-        </svg>
-        <span>StudyMate AI</span>
+        <div class="logo-badge">AI</div>
+        <span>StudyMate</span>
       </a>
+
       <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-        </svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
+
       <nav id="navbar">
-        <a href="index.html" class="active">
-          Home
-        </a>
-        <a href="tutor.html">
-          AI Tutor
-        </a>
-        <a href="notes.html">
-          Notes
-        </a>
-        <a href="quiz.html">
-          Quiz
-        </a>
-        <a href="flashcards.html">
-          Flashcards
-        </a>
-        <a href="planner.html">
-          Planner
-        </a>
-        <a href="about.html">
-          About
-        </a>
-        <a href="contact.html">
-          Contact
-        </a>
+        <a href="index.html" class="active">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
       </nav>
     </div>
   </header>
 
-  <main>
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Elevate Your Learning with StudyMate AI</h1>
-        <p>Unlock the power of conversational artificial intelligence to synthesize custom study notes, generate active-recall quizzes, flip flashcards, and coordinate dynamic timetables tailored precisely to your exam goals.</p>
-        <div class="hero-buttons">
-          <a href="tutor.html" class="btn btn-primary">
-            <span>Start Learning</span>
-            <svg style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-          </a>
-          <a href="#tools" class="btn btn-secondary">Explore Tools</a>
-        </div>
+  <!-- Hero Section -->
+  <main class="hero-section">
+    <div>
+      <div class="badge-pill">
+        <span>●</span> Next-Gen AI Learning Workspace
       </div>
-      <div class="hero-illustration">
-        <!-- Gorgeous Vector SVG representing AI study -->
-        <svg viewBox="0 0 200 200" fill="none">
-          <circle cx="100" cy="100" r="80" fill="url(#hero-circle-grad)" fill-opacity="0.08" stroke="url(#hero-stroke-grad)" stroke-width="1.5" stroke-dasharray="4 4" />
-          <circle cx="100" cy="100" r="55" fill="rgba(99, 102, 241, 0.05)" />
-          
-          <!-- Glowing core connection paths -->
-          <path d="M100 45 L100 155 M45 100 L155 100 M61 61 L139 139 M61 139 L139 61" stroke="rgba(99, 102, 241, 0.15)" stroke-width="1" />
-          
-          <!-- Outer floating elements -->
-          <!-- Brain / Mind node -->
-          <g transform="translate(88, 30)">
-            <rect width="24" height="24" rx="6" fill="#1e1b4b" stroke="#8b5cf6" stroke-width="1.5"/>
-            <path d="M12 6v6m0 0h6m-6 0v6m0-6H6" stroke="#c084fc" stroke-dasharray="1 1" stroke-width="1.5" />
-            <circle cx="12" cy="12" r="2" fill="#a855f7" />
-          </g>
-          
-          <!-- Book node -->
-          <g transform="translate(142, 65)">
-            <rect width="24" height="24" rx="6" fill="#162e3d" stroke="#06b6d4" stroke-width="1.5"/>
-            <path d="M7 10h10M7 14h10M7 6h6" stroke="#22d3ee" stroke-linecap="round" stroke-width="1.5" />
-          </g>
+      <h1 class="hero-title">Master Any Course.<br>Speed Up Study.</h1>
+      <p class="hero-subtitle">Upload your lecture notes, slides, or textbooks. Generate active recall quizzes, notes outlines, and personalized study schedules in seconds.</p>
 
-          <!-- Chat bubble node -->
-          <g transform="translate(34, 65)">
-            <rect width="24" height="24" rx="6" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
-            <path d="M8 9h8m-8 3h6" stroke="#818cf8" stroke-linecap="round" stroke-width="1.5" />
-          </g>
-
-          <!-- Calendar check node -->
-          <g transform="translate(88, 146)">
-            <rect width="24" height="24" rx="6" fill="#142c23" stroke="#10b981" stroke-width="1.5"/>
-            <path d="M8 12l3 3 5-5" stroke="#34d399" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
-          </g>
-
-          <!-- Central AI Glow -->
-          <g transform="translate(82, 82)">
-            <rect width="36" height="36" rx="10" fill="url(#logo-grad)" stroke="#ffffff" stroke-width="1" style="filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6))" />
-            <!-- Inner gear/spark -->
-            <path d="M18 10v16M10 18h16M13.5 13.5l9 9M13.5 22.5l9-9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
-            <circle cx="18" cy="18" r="5" fill="#0a0e1a" />
-            <circle cx="18" cy="18" r="2" fill="#ffffff" />
-          </g>
-          
-          <defs>
-            <linearGradient id="hero-circle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#06b6d4" />
-              <stop offset="100%" stop-color="#8b5cf6" />
-            </linearGradient>
-            <linearGradient id="hero-stroke-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#6366f1" />
-              <stop offset="100%" stop-color="#10b981" />
-            </linearGradient>
-          </defs>
-        </svg>
+      <div class="hero-actions">
+        <a href="tutor.html" class="btn btn-primary">Start Workspace →</a>
+        <a href="#features" class="btn btn-secondary">Explore Tools</a>
       </div>
-    </section>
+    </div>
 
-    <!-- Dynamic Dashboard Preview -->
-    <section class="dashboard-preview">
-      <div class="dashboard-header">
-        <h2 class="dashboard-title">
-          <svg viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
-          <span>Your Dashboard Status</span>
-        </h2>
-        <span style="font-size:0.85rem; color:var(--text-muted)">Live Storage Tracker</span>
+    <!-- Live Engine Preview Box -->
+    <div class="preview-card">
+      <div class="window-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
       </div>
-      <div class="dashboard-grid">
-        <div class="stat-card">
-          <span class="stat-label">Conversations</span>
-          <span class="stat-value" id="stats-chat-count">0</span>
-          <span class="stat-status" id="stats-chat-status">Ready to tutor</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Saved Notes</span>
-          <span class="stat-value" id="stats-notes-count">0</span>
-          <span class="stat-status" id="stats-notes-status">Empty library</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Quiz High Score</span>
-          <span class="stat-value" id="stats-quiz-score">N/A</span>
-          <span class="stat-status" id="stats-quiz-status">No quizzes taken</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Flashcard Decks</span>
-          <span class="stat-value" id="stats-deck-count">0</span>
-          <span class="stat-status" id="stats-deck-status">Empty deck box</span>
-        </div>
+      <div class="chat-bubble-mock">
+        <span style="color:var(--text-muted); font-size:0.75rem;">STUDENT QUERY</span>
+        <p style="color:#ffffff; margin-top:0.25rem;">"Summarize key concepts from Chapter 4 on Quantum Mechanics..."</p>
       </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="tools" class="features-section">
-      <h2>Explore AI Study Tools</h2>
-      <p class="features-subtitle">Everything you need to master your courses and conquer exams in one interface.</p>
-      
-      <div class="features-grid">
-        <!-- Card 1: AI Tutor -->
-        <article class="feature-card" id="card-tutor">
-          <span class="card-badge" id="badge-tutor">Available</span>
-          <div class="feature-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 10.742l1.99 3.979 4.396-8.792M12 21a9.003 9.003 0 008.361-5.638L19.5 12h-3.14a3 3 0 01-2.828-2H10.46a3 3 0 01-2.828 2H4.5l-.861 3.362A9.003 9.003 0 0012 21z"/></svg>
-          </div>
-          <h3>AI Chat Tutor</h3>
-          <p>Chat with a customizable AI assistant. Adjust personas to fit your preferred mode of instruction, whether it is Socratic question-asking or high-level definitions.</p>
-          <a href="tutor.html" class="btn btn-secondary">Open Tutor</a>
-        </article>
-
-        <!-- Card 2: Notes Generator -->
-        <article class="feature-card" id="card-notes">
-          <span class="card-badge" id="badge-notes">0 Saved</span>
-          <div class="feature-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-          </div>
-          <h3>Notes Generator</h3>
-          <p>Synthesize detailed, cleanly formatted notes about any subject. Customize the summary length and output formats, then export or save for offline access.</p>
-          <a href="notes.html" class="btn btn-secondary">Create Notes</a>
-        </article>
-
-        <!-- Card 3: Quiz Generator -->
-        <article class="feature-card" id="card-quiz">
-          <span class="card-badge" id="badge-quiz">0 High</span>
-          <div class="feature-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </div>
-          <h3>Quiz Generator</h3>
-          <p>Construct customized mock examinations. Set difficulty targets and question limits to practice recall. Earn high scores and review error breakdowns.</p>
-          <a href="quiz.html" class="btn btn-secondary">Take Quiz</a>
-        </article>
-
-        <!-- Card 4: Flashcards -->
-        <article class="feature-card" id="card-flashcards">
-          <span class="card-badge" id="badge-flashcards">0 Cards</span>
-          <div class="feature-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-12v.75m0 3v.75m0 3v.75m0 3V18m-3-12h12c1.38 0 2.5 1.12 2.5 2.5v9c0 1.38-1.12 2.5-2.5 2.5H4.5A2.5 2.5 0 012 15.5v-9A2.5 2.5 0 014.5 4z"/></svg>
-          </div>
-          <h3>Flippable Flashcards</h3>
-          <p>Train your recall with responsive 3D-flipping cards. Group flashcard sets by topic, mark cards as mastered or flagged for review, and study on the go.</p>
-          <a href="flashcards.html" class="btn btn-secondary">Study Flashcards</a>
-        </article>
-
-        <!-- Card 5: Study Planner -->
-        <article class="feature-card" id="card-planner">
-          <span class="card-badge" id="badge-planner">Inactive</span>
-          <div class="feature-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"/></svg>
-          </div>
-          <h3>Dynamic Study Planner</h3>
-          <p>Assemble custom weekly timetables leading up to exam targets. Input subjects and goals to construct structured daily revision chunks.</p>
-          <a href="planner.html" class="btn btn-secondary">Organize Plan</a>
-        </article>
+      <div class="chat-bubble-mock" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15);">
+        <span style="color:#ffffff; font-size:0.72rem; font-weight:700; text-transform:uppercase;">AI Tutor Output</span>
+        <p style="color:var(--text-muted); margin-top:0.25rem;">1. Wave-particle duality<br>2. Heisenberg Uncertainty Principle<br>3. Schrödinger Wave Equation</p>
       </div>
-    </section>
+    </div>
   </main>
 
-  <footer>
-    <div class="footer-container">
-      <div class="footer-brand">
-        <h4>StudyMate AI</h4>
-        <p>Combining interactive AI personas, instant notes compiling, customized mock testing, flippable memory decks, and dynamic calendar grids in one self-contained client app.</p>
-      </div>
-      <div class="footer-links">
-        <h5>Study Tools</h5>
-        <ul>
-          <li><a href="tutor.html">AI Chat Tutor</a></li>
-          <li><a href="notes.html">Notes Generator</a></li>
-          <li><a href="quiz.html">Quiz Generator</a></li>
-          <li><a href="flashcards.html">Flippable Flashcards</a></li>
-          <li><a href="planner.html">Study Planner</a></li>
-        </ul>
-      </div>
-      <div class="footer-links">
-        <h5>Company</h5>
-        <ul>
-          <li><a href="about.html">About StudyMate</a></li>
-          <li><a href="contact.html">Contact & Support</a></li>
-        </ul>
-      </div>
+  <!-- Tools Grid Section -->
+  <section class="features-section" id="features">
+    <h2 class="section-title">Core Learning Modules</h2>
+    <p class="section-subtitle">Select a tool to begin your study session.</p>
+
+    <div class="tools-grid">
+      <a href="tutor.html" class="tool-card">
+        <div class="tool-icon">💬</div>
+        <div class="tool-name">AI Tutor</div>
+        <div class="tool-desc">Socratic coaching, ELI5 simplifications, and instant answers tailored to your syllabus.</div>
+      </a>
+
+      <a href="notes.html" class="tool-card">
+        <div class="tool-icon">📝</div>
+        <div class="tool-name">Smart Notes</div>
+        <div class="tool-desc">Synthesize raw transcripts and slides into structured bullet outlines and formula sheets.</div>
+      </a>
+
+      <a href="quiz.html" class="tool-card">
+        <div class="tool-icon">⚡</div>
+        <div class="tool-name">Quiz Generator</div>
+        <div class="tool-desc">Generate active recall multiple choice questions with instant explanations.</div>
+      </a>
+
+      <a href="flashcards.html" class="tool-card">
+        <div class="tool-icon">🃏</div>
+        <div class="tool-name">Flashcard Deck</div>
+        <div class="tool-desc">Interactive 3D flip card decks for key term memorization and exam review.</div>
+      </a>
+
+      <a href="planner.html" class="tool-card">
+        <div class="tool-icon">📅</div>
+        <div class="tool-name">Study Planner</div>
+        <div class="tool-desc">Adaptive timeline tracking and milestone schedules for targeted test dates.</div>
+      </a>
+
+      <a href="login.html" class="tool-card">
+        <div class="tool-icon">🔒</div>
+        <div class="tool-name">Account Studio</div>
+        <div class="tool-desc">Manage your authentication tokens, saved decks, and personal progress history.</div>
+      </a>
     </div>
-    <div class="footer-bottom">
-      <span>&copy; 2026 StudyMate AI. All rights reserved. Self-contained Offline Mode.</span>
-      <div class="social-links">
-        <!-- Mock Social Links with SVGs -->
-        <a href="#" aria-label="Twitter">
-          <svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
-        </a>
-        <a href="#" aria-label="Github">
-          <svg viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.5-1.4-1.9-1.4-1.9-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1a1.7 1.7 0 0 1 .5-1.1c-2.7-.3-5.5-1.3-5.5-6A4.7 4.7 0 0 1 5 9.6a4.4 4.4 0 0 1 .1-3.3s.9-.3 3 1.1a10.4 10.4 0 0 1 5.5 0c2.1-1.4 3-1.1 3-1.1a4.4 4.4 0 0 1 .2 3.3 4.7 4.7 0 0 1 1.2 3.3c0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
-        </a>
-      </div>
-    </div>
-  </footer>
+  </section>
 
   <script>
-    // Navigation Hamburger Toggle
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
-    menuToggle.addEventListener('click', () => {
-      navbar.classList.toggle('mobile-active');
-    });
-
-    // Dashboard dynamic loading and visualization
-    function loadDashboardData() {
-      // 1. Chats count
-      const chats = JSON.parse(localStorage.getItem('sm_chats') || '[]');
-      const chatCount = chats.length;
-      document.getElementById('stats-chat-count').innerText = chatCount;
-      const chatStatus = document.getElementById('stats-chat-status');
-      if (chatCount > 0) {
-        chatStatus.innerText = `${chatCount} active session${chatCount > 1 ? 's' : ''}`;
-        chatStatus.classList.remove('inactive');
-      } else {
-        chatStatus.innerText = 'Ready to tutor';
-        chatStatus.classList.add('inactive');
-      }
-
-      // 2. Saved Notes count
-      const notes = JSON.parse(localStorage.getItem('sm_notes') || '[]');
-      const notesCount = notes.length;
-      document.getElementById('stats-notes-count').innerText = notesCount;
-      document.getElementById('badge-notes').innerText = `${notesCount} Saved`;
-      const notesStatus = document.getElementById('stats-notes-status');
-      if (notesCount > 0) {
-        notesStatus.innerText = `${notesCount} item${notesCount > 1 ? 's' : ''} in library`;
-        notesStatus.classList.remove('inactive');
-      } else {
-        notesStatus.innerText = 'Empty library';
-        notesStatus.classList.add('inactive');
-      }
-
-      // 3. Quiz Score
-      const quizHigh = localStorage.getItem('sm_quiz_highscore');
-      const quizBadge = document.getElementById('badge-quiz');
-      const quizVal = document.getElementById('stats-quiz-score');
-      const quizStatus = document.getElementById('stats-quiz-status');
-      if (quizHigh !== null) {
-        quizVal.innerText = `${quizHigh}%`;
-        quizBadge.innerText = `${quizHigh}% High`;
-        quizStatus.innerText = 'Top score recorded';
-        quizStatus.classList.remove('inactive');
-      } else {
-        quizVal.innerText = 'N/A';
-        quizBadge.innerText = '0% High';
-        quizStatus.innerText = 'No quizzes taken';
-        quizStatus.classList.add('inactive');
-      }
-
-      // 4. Flashcards Decks / Cards Count
-      const cards = JSON.parse(localStorage.getItem('sm_cards') || '[]');
-      const cardCount = cards.length;
-      document.getElementById('stats-deck-count').innerText = cardCount > 0 ? 1 : 0;
-      document.getElementById('badge-flashcards').innerText = `${cardCount} Cards`;
-      const deckStatus = document.getElementById('stats-deck-status');
-      if (cardCount > 0) {
-        const mastered = cards.filter(c => c.mastered).length;
-        deckStatus.innerText = `${mastered}/${cardCount} cards mastered`;
-        deckStatus.classList.remove('inactive');
-      } else {
-        deckStatus.innerText = 'Empty deck box';
-        deckStatus.classList.add('inactive');
-      }
-
-      // 5. Planner badge
-      const plan = localStorage.getItem('sm_planner_plan');
-      const planBadge = document.getElementById('badge-planner');
-      if (plan) {
-        planBadge.innerText = 'Active Plan';
-        planBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-        planBadge.style.color = 'var(--success)';
-        planBadge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-      } else {
-        planBadge.innerText = 'Inactive';
-      }
-    }
-
-    // Run loader on startup
-    window.addEventListener('DOMContentLoaded', loadDashboardData);
-
-    // Feature Card Glow Effect based on Cursor Position
-    const cardsElements = document.querySelectorAll('.feature-card');
-    cardsElements.forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--x', `${x}px`);
-        card.style.setProperty('--y', `${y}px`);
-      });
-    });
+    menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
   </script>
   <script src="auth-helper.js"></script>
 </body>

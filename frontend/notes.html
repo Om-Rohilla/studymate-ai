@@ -3,779 +3,198 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMate AI - Notes Generator</title>
+  <title>StudyMate AI — Smart Notes Generator</title>
+  <link rel="stylesheet" href="design-system.css">
+
   <style>
-    /* Design Tokens & CSS Variables */
-    :root {
-      --bg-primary: #0a0e1a;
-      --bg-secondary: #121829;
-      --bg-card: rgba(20, 27, 47, 0.65);
-      --bg-card-hover: rgba(28, 38, 65, 0.85);
-      --border-color: rgba(99, 102, 241, 0.18);
-      --border-hover: rgba(139, 92, 246, 0.4);
-      --primary: #6366f1;
-      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-      --secondary: #a855f7;
-      --accent: #06b6d4;
-      --success: #10b981;
-      --danger: #ef4444;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --glass-blur: blur(16px);
-      --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
-      --glow-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    /* Reset & Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* Scrollbar Style */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-primary);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--border-color);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary);
-    }
-
-    a {
-      text-decoration: none;
-      color: inherit;
-      transition: var(--transition);
-    }
-
-    /* Header Nav */
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(10, 14, 26, 0.8);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.35rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #f8fafc 30%, #a855f7 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .logo svg {
-      width: 28px;
-      height: 28px;
-      fill: none;
-      stroke: url(#logo-grad);
-      stroke-width: 2.2;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 1.75rem;
-    }
-
-    nav a {
-      font-size: 0.925rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      padding: 0.5rem 0;
-      border-bottom: 2px solid transparent;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    nav a:hover, nav a.active {
-      color: var(--text-primary);
-    }
-
-    nav a.active {
-      border-bottom-color: var(--primary);
-    }
-
-    .menu-toggle {
-      display: none;
-      background: transparent;
-      border: none;
-      color: var(--text-primary);
-      cursor: pointer;
-      padding: 0.25rem;
-    }
-
-    .menu-toggle svg {
-      width: 24px;
-      height: 24px;
-    }
-
     main {
-      flex: 1;
-      max-width: 1200px;
+      max-width: 1150px;
       margin: 0 auto;
-      padding: 2rem;
-      width: 100%;
+      padding: 1.25rem 1.5rem;
       display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 2rem;
-      height: calc(100vh - 70px - 2rem);
+      grid-template-columns: 280px 1fr;
+      gap: 1.25rem;
+      height: calc(100vh - 68px);
+      position: relative;
+      z-index: 1;
     }
 
-    /* Sidebar controls */
-    .sidebar {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
+    .sidebar-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1rem;
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      box-shadow: var(--card-shadow);
       overflow-y: auto;
     }
 
-    .sidebar-section h3 {
-      font-size: 1.05rem;
-      margin-bottom: 1rem;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      padding-bottom: 0.5rem;
-    }
-
-    .sidebar-section h3 svg {
-      width: 18px;
-      height: 18px;
-      stroke: var(--primary);
-      stroke-width: 2;
-      fill: none;
+    .panel-section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-      margin-bottom: 1rem;
+      gap: 0.3rem;
     }
 
-    label {
-      font-size: 0.825rem;
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
-
-    select, input, textarea {
-      background: rgba(10, 14, 26, 0.6);
-      border: 1px solid var(--border-color);
-      padding: 0.75rem;
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: inherit;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-
-    select:focus, input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.25rem;
-      border-radius: 10px;
+    .form-label {
+      font-size: 0.75rem;
       font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .select-input, .text-input {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.55rem 0.75rem;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
       transition: var(--transition);
-      border: none;
-      width: 100%;
     }
 
-    .btn-primary {
-      background: var(--primary-gradient);
-      color: var(--text-primary);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .select-input:focus, .text-input:focus {
+      outline: none;
       border-color: var(--border-hover);
+      background: var(--bg-input-focus);
     }
 
-    /* History item list */
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.4rem;
       overflow-y: auto;
-      max-height: 250px;
+      max-height: 200px;
     }
 
     .history-item {
-      background: rgba(10, 14, 26, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 0.75rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.5rem 0.75rem;
       cursor: pointer;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       transition: var(--transition);
+      font-size: 0.8rem;
     }
 
     .history-item:hover {
+      background: rgba(255, 255, 255, 0.06);
       border-color: var(--border-hover);
-      background: rgba(255, 255, 255, 0.02);
     }
 
-    .history-item-details {
+    .notes-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
-      gap: 0.15rem;
-      overflow: hidden;
-      width: 80%;
-    }
-
-    .history-item-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .history-item-sub {
-      font-size: 0.725rem;
-      color: var(--text-secondary);
-    }
-
-    .history-delete-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: var(--transition);
-      padding: 0.25rem;
-      border-radius: 4px;
-    }
-
-    .history-delete-btn:hover {
-      color: var(--danger);
-      background: rgba(239, 68, 68, 0.1);
-    }
-
-    .history-delete-btn svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    /* Notes Workspace Panel */
-    .workspace {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      box-shadow: var(--card-shadow);
       overflow: hidden;
       height: 100%;
       position: relative;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
 
-    /* Notes actions header */
-    .workspace-header {
-      padding: 1rem 1.5rem;
-      background: rgba(10, 14, 26, 0.5);
-      border-bottom: 1px solid var(--border-color);
+    .notes-header {
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--border-subtle);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      background: rgba(8, 10, 15, 0.5);
     }
 
-    .notes-actions {
+    .action-btn-row {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
-    .action-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      width: 38px;
-      height: 38px;
+    .icon-action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: var(--text-secondary);
       transition: var(--transition);
-    }
-
-    .action-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-      border-color: var(--border-hover);
-    }
-
-    .action-btn svg {
-      width: 16px;
-      height: 16px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2.2;
-    }
-
-    /* Notes Content Panel */
-    .notes-scroll {
-      flex: 1;
-      padding: 2.5rem;
-      overflow-y: auto;
-    }
-
-    .notes-sheet {
-      background: rgba(10, 14, 26, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      padding: 2rem;
-      min-height: 100%;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Rich Notes HTML styling */
-    .notes-content h1 {
-      font-size: 2rem;
-      margin-bottom: 1.5rem;
-      color: var(--text-primary);
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 0.5rem;
-    }
-
-    .notes-content h2 {
-      font-size: 1.4rem;
-      margin-top: 2rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-
-    .notes-content h3 {
-      font-size: 1.1rem;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
-      color: var(--secondary);
-    }
-
-    .notes-content p {
-      margin-bottom: 1.25rem;
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      text-align: justify;
-    }
-
-    .notes-content ul {
-      margin-left: 1.5rem;
-      margin-bottom: 1.5rem;
-      color: var(--text-secondary);
-    }
-
-    .notes-content li {
-      margin-bottom: 0.5rem;
-      font-size: 0.95rem;
-    }
-
-    .notes-content .highlight-box {
-      background: rgba(99, 102, 241, 0.08);
-      border-left: 4px solid var(--primary);
-      padding: 1.25rem;
-      border-radius: 0 8px 8px 0;
-      margin: 1.5rem 0;
-    }
-
-    .notes-content .highlight-box p {
-      margin-bottom: 0;
-      font-style: italic;
-      color: var(--text-primary);
-    }
-
-    .notes-content code {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
       font-size: 0.85rem;
-      font-family: monospace;
-      color: #f472b6;
     }
 
-    .notes-content pre {
-      background: rgba(0, 0, 0, 0.4);
-      padding: 1.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      overflow-x: auto;
-      margin: 1.5rem 0;
+    .icon-action-btn:hover {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ffffff;
     }
 
-    .notes-content pre code {
-      background: transparent;
-      padding: 0;
-      color: #38bdf8;
+    .notes-viewport {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      line-height: 1.55;
     }
 
-    /* Skeleton Loading State */
-    .skeleton-loader {
-      display: none;
-      flex-direction: column;
-      gap: 1.25rem;
-      animation: pulse 1.5s infinite ease-in-out;
-    }
+    .notes-content h1 { font-size: 1.5rem; margin-bottom: 0.75rem; color: #ffffff; }
+    .notes-content h2 { font-size: 1.1rem; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #ffffff; }
+    .notes-content p { margin-bottom: 0.85rem; color: var(--text-muted); font-size: 0.85rem; }
+    .notes-content ul { margin-left: 1.25rem; margin-bottom: 0.85rem; color: var(--text-muted); font-size: 0.85rem; }
 
-    .skeleton-line {
-      height: 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 4px;
-    }
-
-    .skeleton-line.title {
-      height: 32px;
-      width: 60%;
-      margin-bottom: 1.5rem;
-    }
-
-    .skeleton-line.h2 {
-      height: 24px;
-      width: 40%;
-      margin-top: 1.5rem;
-    }
-
-    .skeleton-line.paragraph {
-      width: 90%;
-    }
-
-    .skeleton-line.short {
-      width: 70%;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 0.3; }
-    }
-
-    /* Interactive feedback toast styling */
     .toast {
       position: absolute;
-      bottom: 2rem;
-      right: 2rem;
-      background: rgba(16, 185, 129, 0.95);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.9rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #ffffff;
+      color: #000000;
+      padding: 0.6rem 1rem;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.78rem;
       display: none;
-      z-index: 200;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      align-items: center;
-      gap: 0.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    .toast.error {
-      background: rgba(239, 68, 68, 0.95);
-    }
-
-    .toast svg {
-      width: 18px;
-      height: 18px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2.5;
-    }
-
-    /* File Upload styling */
-    .file-dropzone {
-      border: 1px dashed var(--border-color);
-      border-radius: 10px;
-      padding: 1rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-      background: rgba(10, 14, 26, 0.4);
-      transition: var(--transition);
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      margin-top: 0.25rem;
-    }
-    .file-dropzone:hover, .file-dropzone.dragover {
-      border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.05);
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
-    }
-    .file-chip {
-      margin-top: 0.75rem;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-color);
-      padding: 0.5rem 0.75rem;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .file-chip-info {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      overflow: hidden;
-    }
-    .file-chip-info svg {
-      width: 16px;
-      height: 16px;
-      stroke: var(--accent);
-      stroke-width: 2;
-      fill: none;
-      flex-shrink: 0;
-    }
-    .file-chip-name {
-      font-size: 0.8rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .file-chip-size {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      flex-shrink: 0;
-    }
-    .file-chip-remove {
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 1.1rem;
-      line-height: 1;
-      padding: 0.1rem;
-      border-radius: 4px;
-      transition: var(--transition);
-    }
-    .file-chip-remove:hover {
-      color: var(--danger);
-      background: rgba(239, 68, 68, 0.1);
-    }
-
-    /* Connection toggling status styling */
-    .config-status {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding-top: 1rem;
-    }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 34px;
-      height: 20px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0; height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255,255,255,0.1);
-      transition: .3s;
-      border-radius: 20px;
-      border: 1px solid var(--border-color);
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 12px; width: 12px;
-      left: 3px; bottom: 3px;
-      background-color: var(--text-secondary);
-      transition: .3s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--primary);
-      border-color: var(--primary);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(14px);
-      background-color: white;
-    }
-
-    /* Print styles overrides */
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-      header, .sidebar, .workspace-header {
-        display: none !important;
-      }
-      .notes-scroll, .notes-sheet, .notes-sheet * {
-        visibility: visible;
-      }
-      .notes-scroll {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 0;
-      }
-      .notes-sheet {
-        border: none;
-        box-shadow: none;
-        background: white;
-        color: black !important;
-      }
-      .notes-sheet * {
-        color: black !important;
-      }
-    }
-
-    /* Responsive adjustments */
     @media (max-width: 900px) {
-      main {
-        grid-template-columns: 1fr;
-        height: auto;
-        overflow-y: visible;
-      }
-      .sidebar {
-        max-height: 450px;
-      }
-      .workspace {
-        height: 600px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .nav-container {
-        padding: 0 1.5rem;
-      }
-      nav {
-        display: none;
-      }
-      .menu-toggle {
-        display: block;
-      }
-      nav.mobile-active {
-        display: flex;
-        flex-direction: column;
-        position: absolute;
-        top: 70px;
-        left: 0; right: 0;
-        background: #0d1222;
-        border-bottom: 1px solid var(--border-color);
-        padding: 1.5rem;
-        gap: 1.25rem;
-        z-index: 99;
-      }
-      nav.mobile-active a {
-        font-size: 1.05rem;
-        width: 100%;
-        border-bottom: none;
-        padding: 0.25rem 0;
-      }
+      main { grid-template-columns: 1fr; height: auto; }
+      .notes-panel { height: 500px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- SVG Gradients -->
-  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#6366f1" />
-        <stop offset="100%" stop-color="#a855f7" />
-      </linearGradient>
-    </defs>
-  </svg>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
 
+  <!-- Navigation -->
   <header>
     <div class="nav-container">
       <a href="index.html" class="logo">
-        <svg viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a3.5 3.5 0 10-3.5-3.5H12m0 3.5A3.5 3.5 0 1115.5 9.25H12M9 13h6m-3 5h.008v.008H12V18z" />
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3" />
-        </svg>
-        <span>StudyMate AI</span>
+        <div class="logo-badge">AI</div>
+        <span>StudyMate</span>
       </a>
+
       <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
-        </svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
+
       <nav id="navbar">
         <a href="index.html">Home</a>
         <a href="tutor.html">AI Tutor</a>
@@ -790,780 +209,167 @@
   </header>
 
   <main>
-    <!-- Left Configuration Panel & History -->
-    <section class="sidebar">
-      <div class="sidebar-section">
-        <h3>
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-          <span>Notes Builder</span>
-        </h3>
+    <aside class="sidebar-panel">
+      <div class="panel-section-title">Notes Builder</div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes-topic">Topic or Keywords</label>
+        <input type="text" id="notes-topic" class="text-input" placeholder="e.g. Organic Chemistry...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="subject-select">Subject Category</label>
+        <select id="subject-select" class="select-input">
+          <option value="science">Science & Biology</option>
+          <option value="math">Mathematics</option>
+          <option value="cs">Computer Science</option>
+          <option value="history">History</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes-style">Summary Format</label>
+        <select id="notes-style" class="select-input">
+          <option value="detailed">Comprehensive Outline</option>
+          <option value="bullet">Bullet Points Only</option>
+          <option value="exam">Exam Quick Review</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="generate-notes-btn">
+        <span>Generate Notes</span>
+      </button>
+
+      <div class="panel-section-title" style="margin-top:0.3rem;">Saved Library</div>
+      <div class="history-list" id="history-container"></div>
+    </aside>
+
+    <section class="notes-panel">
+      <div class="notes-header">
+        <h2 style="font-size: 0.95rem; font-weight: 700; color: #ffffff;" id="notes-title-header">Active Notes Viewer</h2>
         
-        <form id="notes-form" onsubmit="event.preventDefault();">
-          <div class="form-group">
-            <label for="topic-input">Topic / Subject Title</label>
-            <input type="text" id="topic-input" placeholder="e.g., Photosynthesis, Quick Sort...">
-          </div>
-
-          <div class="form-group">
-            <label>Or Upload Context Document</label>
-            <div class="file-dropzone" id="file-dropzone">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:var(--text-secondary);"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
-              <span>Click or drag file here</span>
-              <span style="font-size:0.7rem;color:var(--text-muted);">Supports .txt, .docx, .pptx</span>
-              <input type="file" id="file-input" accept=".txt,.doc,.docx,.ppt,.pptx" style="display:none;">
-            </div>
-            <div class="file-chip" id="file-chip" style="display:none;">
-              <div class="file-chip-info">
-                <svg id="file-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                <span class="file-chip-name" id="file-chip-name">document.txt</span>
-                <span class="file-chip-size" id="file-chip-size">12 KB</span>
-              </div>
-              <button type="button" class="file-chip-remove" id="file-chip-remove">&times;</button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="subject-select">Subject Field</label>
-            <select id="subject-select">
-              <option value="science">Science / Biology</option>
-              <option value="math">Mathematics</option>
-              <option value="cs">Computer Science</option>
-              <option value="history">History</option>
-              <option value="literature">Literature</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="style-select">Summary Format</label>
-            <select id="style-select">
-              <option value="comprehensive">Comprehensive Summary</option>
-              <option value="bullets">Key Bullet Points</option>
-              <option value="outline">Mind-Map Outline</option>
-              <option value="cheat">Exam Cheat Sheet</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="length-select">Target Length</label>
-            <select id="length-select">
-              <option value="medium">Medium Revision</option>
-              <option value="brief">Brief Review</option>
-              <option value="long">Detailed Study</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn btn-primary" id="generate-btn">
-            Generate Notes
-          </button>
-        </form>
-      </div>
-
-      <div class="sidebar-section" style="flex: 1;">
-        <h3>
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
-          <span>Saved Notes</span>
-        </h3>
-        
-        <div class="history-list" id="history-container">
-          <!-- Dynamically populated from LocalStorage -->
+        <div class="action-btn-row">
+          <button class="icon-action-btn" id="action-save" title="Save to library">💾</button>
+          <button class="icon-action-btn" id="action-copy" title="Copy to clipboard">📋</button>
+          <button class="icon-action-btn" id="action-download" title="Download text">⬇️</button>
+          <button class="icon-action-btn" id="action-print" title="Print document">🖨️</button>
         </div>
       </div>
 
-      <div class="config-status">
-        <span>Connect to FastAPI backend</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="backend-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </section>
-
-    <!-- Right Workspace Area -->
-    <section class="workspace">
-      <!-- Actions bar -->
-      <div class="workspace-header">
-        <h2 style="font-size: 1rem; font-weight: 700;" id="notes-title-header">Active Notes Viewer</h2>
-        <div class="notes-actions">
-          <button class="action-btn" id="action-save" title="Save notes to History">
-            <!-- SVG Disk icon -->
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.59 3.59c-.38-.38-.89-.59-1.42-.59H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7.83c0-.53-.21-1.04-.59-1.41l-2.82-2.83zM12 19c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-          </button>
-          <button class="action-btn" id="action-copy" title="Copy to Clipboard">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376A8.965 8.965 0 0012 12.75a8.965 8.965 0 00-3.75 3.375m7.5 0H18.75a1.125 1.125 0 001.125-1.125V11.25A9 9 0 0010.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V15.75M12 12.75a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z"/></svg>
-          </button>
-          <button class="action-btn" id="action-download" title="Download Text File">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          </button>
-          <button class="action-btn" id="action-print" title="Print Notes">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.8A8.003 8.003 0 0112 4c2.2 0 4.19.89 5.62 2.32m0 0A8.006 8.006 0 0120 12v3.5a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 15.5V12c0-1.66.5-3.2 1.38-4.5m12.12-.18l.8-.8m-9.62 9.48v2.25m3 0V18.75m3 0v2.25"/></svg>
-          </button>
+      <div class="notes-viewport" id="notes-viewport">
+        <div class="notes-content">
+          <h1>Welcome to Smart Notes</h1>
+          <p>Enter a topic on the left sidebar and click <strong>Generate Notes</strong> to synthesize clean, structured study material.</p>
         </div>
       </div>
 
-      <!-- Notes Display sheet -->
-      <div class="notes-scroll">
-        <div class="notes-sheet">
-          <!-- Skeleton Loading Screen -->
-          <div class="skeleton-loader" id="loader">
-            <div class="skeleton-line title"></div>
-            <div class="skeleton-line paragraph"></div>
-            <div class="skeleton-line paragraph"></div>
-            <div class="skeleton-line paragraph short"></div>
-            <div class="skeleton-line h2"></div>
-            <div class="skeleton-line paragraph"></div>
-            <div class="skeleton-line paragraph"></div>
-          </div>
-
-          <!-- Notes Container -->
-          <div class="notes-content" id="notes-viewport">
-            <h1>Welcome to Notes Generator</h1>
-            <p>Enter a topic or select a previous summary from the sidebar to display structured learning resources here.</p>
-            <div class="highlight-box">
-              <p>Pro-Tip: Generated summaries are persistent. Use the floppy disk icon in the header to save notes to local storage for quick review at any time!</p>
-            </div>
-            <h2>Available Features</h2>
-            <ul>
-              <li><strong>Custom summary styling:</strong> Choose from bullet points, complete outlines, summaries, or cheat sheets.</li>
-              <li><strong>Easy Exporters:</strong> Copy immediately, print cleanly (styles are formatted for print sheets!), or download locally.</li>
-              <li><strong>FastAPI backend ready:</strong> Ready to connect to OpenAI or similar models with a simple server setup.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action feedback Toast notifications -->
-      <div class="toast" id="toast">
-        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span id="toast-msg">Notes copied to clipboard!</span>
-      </div>
+      <div class="toast" id="toast">Feedback Toast</div>
     </section>
   </main>
 
   <script>
-    // Navigation Toggle
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
-    menuToggle.addEventListener('click', () => {
-      navbar.classList.toggle('mobile-active');
-    });
+    menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    // Elements
-    const notesForm = document.getElementById('notes-form');
-    const topicInput = document.getElementById('topic-input');
+    const generateBtn = document.getElementById('generate-notes-btn');
+    const topicInput = document.getElementById('notes-topic');
     const subjectSelect = document.getElementById('subject-select');
-    const styleSelect = document.getElementById('style-select');
-    const lengthSelect = document.getElementById('length-select');
-
-    // File Upload Elements & variables
-    const fileDropzone = document.getElementById('file-dropzone');
-    const fileInput = document.getElementById('file-input');
-    const fileChip = document.getElementById('file-chip');
-    const fileChipName = document.getElementById('file-chip-name');
-    const fileChipSize = document.getElementById('file-chip-size');
-    const fileChipRemove = document.getElementById('file-chip-remove');
-    const fileChipIcon = document.getElementById('file-chip-icon');
-
-    // File Select trigger
-    fileDropzone.addEventListener('click', () => fileInput.click());
-
-    // File Input change
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFileSelection(e.target.files[0]);
-      }
-    });
-
-    // Drag-over styling
-    fileDropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.add('dragover');
-    });
-
-    fileDropzone.addEventListener('dragleave', () => {
-      fileDropzone.classList.remove('dragover');
-    });
-
-    fileDropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleFileSelection(e.dataTransfer.files[0]);
-      }
-    });
-
-    let activeUploadedFile = null;
-    let activeUploadedText = "";
-    let activeDocumentId = null;
-    const backendToggle = document.getElementById('backend-toggle');
-
-    // Load backendToggle setting
-    const backendActive = localStorage.getItem('sm_backend_active') !== 'false';
-    backendToggle.checked = backendActive;
-
-    backendToggle.addEventListener('change', async () => {
-      const active = backendToggle.checked;
-      localStorage.setItem('sm_backend_active', String(active));
-      if (active && activeUploadedFile && !activeDocumentId) {
-        showToast("Uploading active context document...");
-        activeDocumentId = await uploadDocument(activeUploadedFile);
-      }
-    });
-
-    async function uploadDocument(file) {
-      const token = localStorage.getItem("sm_auth_token");
-      if (!token) {
-        showToast("Sign In first to upload documents.", true);
-        return null;
-      }
-      
-      const formData = new FormData();
-      formData.append("file", file);
-      
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/documents/upload', {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`
-          },
-          body: formData
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          showToast("Document uploaded and processed successfully.");
-          return data.document_id;
-        } else {
-          const errData = await res.json().catch(() => ({}));
-          showToast(errData.detail || "Server upload failed.", true);
-          return null;
-        }
-      } catch (err) {
-        console.error("Document upload failed:", err);
-        showToast("Network error. Using local mock fallback.", true);
-        return null;
-      }
-    }
-
-    // File Select trigger
-    fileDropzone.addEventListener('click', () => fileInput.click());
-
-    // File Input change
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFileSelection(e.target.files[0]);
-      }
-    });
-
-    // Drag-over styling
-    fileDropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.add('dragover');
-    });
-
-    fileDropzone.addEventListener('dragleave', () => {
-      fileDropzone.classList.remove('dragover');
-    });
-
-    fileDropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      fileDropzone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        handleFileSelection(e.dataTransfer.files[0]);
-      }
-    });
-
-    async function handleFileSelection(file) {
-      activeUploadedFile = file;
-      fileChipName.innerText = file.name;
-      
-      // Calculate file size
-      const sizeKB = Math.round(file.size / 1024);
-      fileChipSize.innerText = `${sizeKB} KB`;
-      
-      // Toggle icons depending on extension
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'txt') {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          activeUploadedText = e.target.result;
-        };
-        reader.readAsText(file);
-        fileChipIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />`;
-      } else if (ext === 'ppt' || ext === 'pptx') {
-        activeUploadedText = ""; 
-        fileChipIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0h-10.5" />`;
-      } else {
-        activeUploadedText = "";
-        fileChipIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25M9 16.5v.008H9V16.5zm3 0v.008h-.008V16.5zm3 0v.008H15V16.5zm-6-3v.008H9V13.5zm3 0v.008h-.008V13.5zm3 0v.008H15V13.5zm-6-3v.008H9v-.008zm3 0v.008h-.008v-.008zm3 0v.008H15v-.008z" />`;
-      }
-      
-      fileDropzone.style.display = 'none';
-      fileChip.style.display = 'flex';
-      
-      // Auto-fill topic input with file name (without extension) if empty
-      if (!topicInput.value.trim()) {
-        const baseName = file.name.substring(0, file.name.lastIndexOf('.'));
-        topicInput.value = baseName;
-      }
-
-      if (backendToggle.checked) {
-        showToast("Uploading document...");
-        activeDocumentId = await uploadDocument(file);
-      }
-    }
-
-    // Remove file selection
-    fileChipRemove.addEventListener('click', () => {
-      activeUploadedFile = null;
-      activeUploadedText = "";
-      activeDocumentId = null;
-      fileInput.value = "";
-      fileChip.style.display = 'none';
-      fileDropzone.style.display = 'flex';
-    });
-    
-    const loader = document.getElementById('loader');
+    const styleSelect = document.getElementById('notes-style');
     const notesViewport = document.getElementById('notes-viewport');
     const notesTitleHeader = document.getElementById('notes-title-header');
-    
+
+    const historyContainer = document.getElementById('history-container');
     const actionSave = document.getElementById('action-save');
     const actionCopy = document.getElementById('action-copy');
     const actionDownload = document.getElementById('action-download');
     const actionPrint = document.getElementById('action-print');
-    
     const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toast-msg');
-    const historyContainer = document.getElementById('history-container');
 
-    // Local Storage lists
+    let currentActiveNotes = null;
     let savedNotes = JSON.parse(localStorage.getItem('sm_notes') || '[]');
-    let currentActiveNotes = null; // Holds the active notes content
 
-    function showToast(message, isError = false) {
-      toastMsg.innerText = message;
-      toast.className = `toast${isError ? ' error' : ''}`;
-      toast.style.display = 'flex';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 2500);
+    function showToast(msg) {
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2200);
     }
 
-    // Procedural Mock Content Compiler
-    function generateMockNotes(topic, subject, style, length) {
-      const formattedTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
-      const subjectText = subjectSelect.selectedOptions[0].text;
-      
-      let structureHTML = `<h1>${formattedTopic} Notes</h1>`;
+    generateBtn.addEventListener('click', () => {
+      const topic = topicInput.value.trim();
+      if (!topic) { showToast('Please enter a topic name!'); return; }
 
-      // Intercept if document uploaded
-      if (activeUploadedFile) {
-        let snippet = "";
-        if (activeUploadedText) {
-          snippet = activeUploadedText.trim().substring(0, 200);
-          if (activeUploadedText.length > 200) snippet += "...";
-        } else {
-          snippet = `[Extracted structured outline concepts from binary data in ${activeUploadedFile.name}]`;
-        }
-
-        structureHTML += `
-          <p><strong>Source Document:</strong> ${activeUploadedFile.name} (${Math.round(activeUploadedFile.size/1024)} KB) | <strong>Subject:</strong> ${subjectText}</p>
-          
-          <div class="highlight-box">
-            <p><strong>Document Context Summary:</strong> This summary was compiled by scanning the active segments of the uploaded document: "${activeUploadedFile.name}". The analysis focused on structural chapters, terms, and outcomes.</p>
-          </div>
-
-          <h2>1. Core Extracted Text Context</h2>
-          <p>The initial sections of the uploaded file present the following baseline context:</p>
-          <div style="background: rgba(0,0,0,0.25); padding: 1rem; border-radius:8px; border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; margin-bottom: 1.5rem; color: var(--accent);">
-            ${snippet}
-          </div>
-
-          <h2>2. Summarized Modules</h2>
-          <p>Based on the file's structural content, we have organized the revision points into the following headings:</p>
-          <ul>
-            <li><strong>Core Concept Pillar:</strong> Major thesis of the uploaded text.</li>
-            <li><strong>Relational Context:</strong> How the terms within the document connect to ${subjectText} curricula.</li>
-            <li><strong>Practical Applications:</strong> Suggested workflows, checklists, or exam calculations derived from this source.</li>
-          </ul>
-
-          <h2>3. Key Takeaway & Recall Points</h2>
-          <p>Ensure you review the vocabulary present in this file. Review the companion AI Tutor page using this same context file to practice answering specific questions about its contents.</p>
-        `;
-        return structureHTML;
-      }
-      
-      // Let's create specific details if keyword matches, otherwise build procedural outline
-      const key = topic.toLowerCase();
-      
-      if (key.includes('photosynthesis')) {
-        structureHTML += `
-          <p><strong>Field:</strong> ${subjectText} | <strong>Style:</strong> ${styleSelect.selectedOptions[0].text}</p>
-          
-          <div class="highlight-box">
-            <p><strong>Core definition:</strong> Photosynthesis is the anabolic process by which phototrophic organisms capture electromagnetic radiation (sunlight) and convert it into chemical energy stored in covalent bonds of carbohydrate molecules (primarily glucose).</p>
-          </div>
-
-          <h2>1. Chemical Equation & Reactants</h2>
-          <p>The overall stoichiometry of oxygenic photosynthesis is defined as:</p>
-          <pre><code>6CO₂ + 6H₂O + light energy ➔ C₆H₁₂O₆ + 6O₂</code></pre>
-          <ul>
-            <li><strong>Reactants:</strong> Carbon dioxide absorbed via leaf stomata, Water transported via xylem vessels.</li>
-            <li><strong>Products:</strong> Hexose sugars used for cell respiration/cellulose, Oxygen gas released as byproduct.</li>
-          </ul>
-
-          <h2>2. The Light-Dependent Reactions</h2>
-          <p>Occur in the thylakoid membranes of chloroplasts, where pigment molecules absorb photons.</p>
-          <ul>
-            <li><strong>Photosystem II (PSII):</strong> Excites electrons which enter the Electron Transport Chain (ETC). Photolysis of water releases protons (H+) and oxygen.</li>
-            <li><strong>Photosystem I (PSI):</strong> Re-energizes electrons to reduce NADP+ into NADPH.</li>
-            <li><strong>Photophosphorylation:</strong> Protons flow back to the stroma through ATP Synthase, driving the phosphorylation of ADP to ATP.</li>
-          </ul>
-
-          <h2>3. The Calvin Cycle (Light-Independent)</h2>
-          <p>Occurs within the stroma, utilizing ATP and NADPH generated in light reactions.</p>
-          <ul>
-            <li><strong>Carbon Fixation:</strong> RuBisCO enzyme catalyzes the binding of CO2 to RuBP, forming 3-PGA.</li>
-            <li><strong>Reduction Phase:</strong> ATP and NADPH reduce 3-PGA into G3P (precursor to glucose).</li>
-            <li><strong>Regeneration:</strong> The remaining G3P molecules use ATP to regenerate RuBP acceptors.</li>
-          </ul>
-        `;
-      } else if (key.includes('binary search') || key.includes('sort') || key.includes('algorithm')) {
-        structureHTML += `
-          <p><strong>Field:</strong> ${subjectText} | <strong>Style:</strong> ${styleSelect.selectedOptions[0].text}</p>
-          
-          <div class="highlight-box">
-            <p><strong>Core definition:</strong> An algorithm is a step-by-step mathematical procedure or logical set of instructions designed to solve a specific computational problem or perform a task in finite time.</p>
-          </div>
-
-          <h2>1. Time and Space Complexity Analysis</h2>
-          <p>Using Big O notation, algorithms are compared based on efficiency as input size (n) scales:</p>
-          <ul>
-            <li><code>O(1)</code> - Constant Time (e.g., Array element access)</li>
-            <li><code>O(log n)</code> - Logarithmic Time (e.g., Binary Search)</li>
-            <li><code>O(n)</code> - Linear Time (e.g., Linear Search)</li>
-            <li><code>O(n log n)</code> - Linearithmic Time (e.g., Merge Sort, Quick Sort)</li>
-            <li><code>O(n²)</code> - Quadratic Time (e.g., Bubble Sort, Insertion Sort)</li>
-          </ul>
-
-          <h2>2. Binary Search Logic & Implementation</h2>
-          <p>Binary Search is a divide-and-conquer strategy that finds values in a <strong>pre-sorted array</strong> by repeatedly cutting search boundaries in half.</p>
-          <pre><code>function binarySearch(arr, target) {
-  let left = 0;
-  let right = arr.length - 1;
-
-  while (left &lt;= right) {
-    let mid = Math.floor((left + right) / 2);
-    
-    if (arr[mid] === target) return mid; // Target found
-    if (arr[mid] &lt; target) left = mid + 1; // Search right half
-    else right = mid - 1; // Search left half
-  }
-  return -1; // Target not present
-}</code></pre>
-        `;
-      } else {
-        // Generic Procedural Outline
-        structureHTML += `
-          <p><strong>Field:</strong> ${subjectText} | <strong>Style:</strong> ${styleSelect.selectedOptions[0].text}</p>
-          
-          <div class="highlight-box">
-            <p><strong>Summary:</strong> High-level learning overview detailing the foundations of ${formattedTopic} within ${subjectText} coursework.</p>
-          </div>
-
-          <h2>1. Core Concepts</h2>
-          <p>An introduction to the mechanisms governing ${formattedTopic}. Key theoretical layers include:</p>
-          <ul>
-            <li><strong>First Pillar:</strong> The fundamental assumptions or equations defining this domain.</li>
-            <li><strong>Second Pillar:</strong> Practical operations, applications, and processes involved.</li>
-            <li><strong>Structural Limits:</strong> Boundary cases, constraints, and variables of study.</li>
-          </ul>
-
-          <h2>2. Detailed Sub-Modules</h2>
-          <p>As we examine this topic further, the following structures appear critical:</p>
-          <ul>
-            <li>Research developments and primary historical models.</li>
-            <li>Methodological rules for analyzing problem sheets.</li>
-            <li>Sample computational formulas (if applicable).</li>
-          </ul>
-
-          <h2>3. Key Takeaways & Exam Tips</h2>
-          <p>Ensure you memorize definitions of key terms, review flow charts illustrating system cycles, and complete practice mock quizzes.</p>
-        `;
-      }
-      
-      return structureHTML;
-    }
-
-    // Connect to Backend / LLM API Wrapper using Streaming
-    async function generateNotesAPI(topic, subject, style, length) {
-      if (backendToggle.checked) {
-        const token = localStorage.getItem("sm_auth_token");
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        // Map frontend values to backend parameters
-        let summary_type = "detailed";
-        if (style === 'cheat' || style === 'bullets') {
-          summary_type = "exam";
-        }
-        if (length === 'brief') {
-          summary_type = "short";
-        }
-
-        loader.style.display = 'none';
-        notesViewport.style.display = 'block';
-        notesViewport.innerHTML = "";
-
-        try {
-          const response = await fetch('http://127.0.0.1:8000/api/notes/stream', {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-              topic,
-              subject,
-              style,
-              length,
-              summary_type,
-              document_id: activeDocumentId
-            })
-          });
-          
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.detail || `Server status ${response.status}`);
-          }
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          let notesText = "";
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed) continue;
-              if (trimmed.startsWith('data: ')) {
-                const dataStr = trimmed.slice(6);
-                if (dataStr === '[DONE]') break;
-                try {
-                  const parsed = JSON.parse(dataStr);
-                  notesText += parsed;
-                  notesViewport.innerHTML = notesText;
-                } catch (e) {
-                  console.error("JSON parse error:", e);
-                }
-              }
-            }
-          }
-          return notesViewport.innerHTML;
-
-        } catch (error) {
-          console.error("FastAPI note generate error:", error);
-          showToast(error.message || "Network error. Using mock notes.", true);
-          const mockHTML = generateMockNotes(topic, subject, style, length);
-          notesViewport.innerHTML = mockHTML;
-          return mockHTML;
-        }
-      } else {
-        // Simulate local compilation delay
-        loader.style.display = 'flex';
-        notesViewport.style.display = 'none';
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            const mockHTML = generateMockNotes(topic, subject, style, length);
-            loader.style.display = 'none';
-            notesViewport.style.display = 'block';
-            notesViewport.innerHTML = mockHTML;
-            resolve(mockHTML);
-          }, 1500);
-        });
-      }
-    }
-
-    // Form submit listener
-    notesForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      let topic = topicInput.value.trim();
       const subject = subjectSelect.value;
       const style = styleSelect.value;
-      const length = lengthSelect.value;
 
-      if (!topic && activeUploadedFile) {
-        topic = activeUploadedFile.name;
-      }
-
-      if (!topic) {
-        showToast("Please enter a topic or upload a file.", true);
-        return;
-      }
-
-      // Hide viewer content, show skeleton loading if offline mode
-      if (!backendToggle.checked) {
-        notesViewport.style.display = 'none';
-        loader.style.display = 'flex';
-      }
-      notesTitleHeader.innerText = "Synthesizing notes...";
-
-      // Fetch (streams directly if backend is enabled)
-      const outputHTML = await generateNotesAPI(topic, subject, style, length);
-      
-      currentActiveNotes = {
-        title: topic,
-        subject: subject,
-        style: style,
-        content: outputHTML
-      };
       notesTitleHeader.innerText = `Viewing: ${topic}`;
+      const content = `
+        <div class="notes-content">
+          <h1>${topic}</h1>
+          <p><em>Subject: ${subject.toUpperCase()} | Format: ${style.toUpperCase()}</em></p>
+          <h2>1. Core Concepts</h2>
+          <p>Key foundational principles regarding ${topic}. Designed for fast retention and exam recall.</p>
+          <ul>
+            <li><strong>Principle A:</strong> Primary underlying mechanism driving system states.</li>
+            <li><strong>Principle B:</strong> Secondary relationship between inputs and outputs.</li>
+          </ul>
+        </div>
+      `;
+
+      notesViewport.innerHTML = content;
+      currentActiveNotes = { title: topic, subject, style, content };
+      showToast('Notes generated!');
     });
 
-    // Save active notes to history
     actionSave.addEventListener('click', () => {
-      if (!currentActiveNotes) {
-        showToast("Generate notes first before saving!", true);
-        return;
-      }
-      
-      // Check if already exists in history
-      const exists = savedNotes.some(n => n.title.toLowerCase() === currentActiveNotes.title.toLowerCase());
-      if (exists) {
-        showToast("Notes with this title already exist in history.");
-        return;
-      }
-
+      if (!currentActiveNotes) { showToast('Generate notes first!'); return; }
       savedNotes.push(currentActiveNotes);
       localStorage.setItem('sm_notes', JSON.stringify(savedNotes));
       renderHistory();
-      showToast("Notes saved to study history!");
+      showToast('Notes saved to library!');
     });
 
-    // Copy to clipboard
     actionCopy.addEventListener('click', () => {
-      if (!currentActiveNotes && !notesViewport.innerHTML) {
-        showToast("No content to copy!", true);
-        return;
-      }
-      // Get plain text of notes
-      const plainText = notesViewport.innerText;
-      navigator.clipboard.writeText(plainText).then(() => {
-        showToast("Notes text copied to clipboard!");
-      }).catch(() => {
-        showToast("Failed to copy notes.", true);
-      });
+      navigator.clipboard.writeText(notesViewport.innerText);
+      showToast('Copied to clipboard!');
     });
 
-    // Download notes as file
     actionDownload.addEventListener('click', () => {
-      if (!currentActiveNotes) {
-        showToast("Generate notes first to download!", true);
-        return;
-      }
-      
-      const plainText = notesViewport.innerText;
-      const blob = new Blob([plainText], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      
+      if (!currentActiveNotes) return;
+      const blob = new Blob([notesViewport.innerText], { type: 'text/plain' });
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentActiveNotes.title.replace(/\s+/g, '_')}_notes.txt`;
-      document.body.appendChild(a);
+      a.href = URL.createObjectURL(blob);
+      a.download = `${currentActiveNotes.title.replace(/\s+/g, '_')}.txt`;
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showToast("Notes download started!");
+      showToast('Download started!');
     });
 
-    // Print window
-    actionPrint.addEventListener('click', () => {
-      if (!currentActiveNotes) {
-        showToast("Generate notes first to print!", true);
-        return;
-      }
-      window.print();
-    });
+    actionPrint.addEventListener('click', () => window.print());
 
-    // Render history sidebar items
     function renderHistory() {
       historyContainer.innerHTML = '';
-      if (savedNotes.length === 0) {
-        historyContainer.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1rem 0;">No notes saved yet.</div>';
-        return;
-      }
-
-      savedNotes.forEach((note, index) => {
+      savedNotes.forEach((n, idx) => {
         const item = document.createElement('div');
         item.className = 'history-item';
-        
-        const details = document.createElement('div');
-        details.className = 'history-item-details';
-        details.addEventListener('click', () => {
-          loadSavedNote(index);
+        item.innerHTML = `<span>${n.title}</span><button style="background:none;border:none;color:var(--text-muted);cursor:pointer;" onclick="deleteNote(${idx})">&times;</button>`;
+        item.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'BUTTON') {
+            notesViewport.innerHTML = n.content;
+            currentActiveNotes = n;
+            notesTitleHeader.innerText = `Viewing: ${n.title}`;
+          }
         });
-
-        const title = document.createElement('div');
-        title.className = 'history-item-title';
-        title.innerText = note.title;
-
-        const sub = document.createElement('div');
-        sub.className = 'history-item-sub';
-        sub.innerText = note.subject.toUpperCase();
-
-        details.appendChild(title);
-        details.appendChild(sub);
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'history-delete-btn';
-        delBtn.setAttribute('aria-label', 'Delete note');
-        delBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteSavedNote(index);
-        });
-
-        item.appendChild(details);
-        item.appendChild(delBtn);
         historyContainer.appendChild(item);
       });
     }
 
-    function loadSavedNote(index) {
-      const note = savedNotes[index];
-      currentActiveNotes = note;
-      
-      notesViewport.innerHTML = note.content;
-      notesTitleHeader.innerText = `Viewing: ${note.title}`;
-      showToast(`Loaded notes: ${note.title}`);
-    }
-
-    function deleteSavedNote(index) {
-      const removed = savedNotes.splice(index, 1);
+    window.deleteNote = function(idx) {
+      savedNotes.splice(idx, 1);
       localStorage.setItem('sm_notes', JSON.stringify(savedNotes));
       renderHistory();
-      showToast(`Deleted notes: ${removed[0].title}`);
-      
-      if (currentActiveNotes && currentActiveNotes.title === removed[0].title) {
-        currentActiveNotes = null;
-        notesViewport.innerHTML = `
-          <h1>Welcome to Notes Generator</h1>
-          <p>Enter a topic or select a previous summary from the sidebar to display structured learning resources here.</p>
-        `;
-        notesTitleHeader.innerText = 'Active Notes Viewer';
-      }
-    }
+    };
 
-    // Initialize sidebar
-    window.addEventListener('DOMContentLoaded', () => {
-      renderHistory();
-    });
+    window.addEventListener('DOMContentLoaded', renderHistory);
   </script>
   <script src="auth-helper.js"></script>
 </body>
