@@ -424,7 +424,9 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    import { getSession, saveChatSession, loadChatSession, clearChatSession, callAI } from './db.js'
+
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
@@ -438,22 +440,20 @@
         personaCards.forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedPersona = card.getAttribute('data-persona');
-        const name = card.querySelector('.persona-name').innerText;
-        tutorSubtitle.innerText = `Persona: ${name}`;
+        tutorSubtitle.innerText = `Persona: ${card.querySelector('.persona-name').innerText}`;
       });
     });
 
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const btnSend = document.getElementById('btn-send');
-    const clearChatBtn = document.getElementById('clear-chat-btn');
-    const chatStatsEl = document.getElementById('chat-stats');
+    const chatMessages   = document.getElementById('chat-messages');
+    const chatInput      = document.getElementById('chat-input');
+    const btnSend        = document.getElementById('btn-send');
+    const clearChatBtn   = document.getElementById('clear-chat-btn');
+    const chatStatsEl    = document.getElementById('chat-stats');
     const typingIndicator = document.getElementById('typing-indicator');
-
-    const fileDropzone = document.getElementById('file-dropzone');
-    const fileInput = document.getElementById('file-input');
-    const fileChip = document.getElementById('file-chip');
-    const fileChipName = document.getElementById('file-chip-name');
+    const fileDropzone   = document.getElementById('file-dropzone');
+    const fileInput      = document.getElementById('file-input');
+    const fileChip       = document.getElementById('file-chip');
+    const fileChipName   = document.getElementById('file-chip-name');
     const fileChipRemove = document.getElementById('file-chip-remove');
 
     fileDropzone.addEventListener('click', () => fileInput.click());
@@ -465,109 +465,121 @@
         appendMessage('assistant', `Loaded document context: **${e.target.files[0].name}**.`);
       }
     });
-
     fileChipRemove.addEventListener('click', () => {
-      fileInput.value = "";
+      fileInput.value = '';
       fileChip.style.display = 'none';
       fileDropzone.style.display = 'block';
-      appendMessage('assistant', `Cleared document context.`);
+      appendMessage('assistant', 'Cleared document context.');
     });
 
-    let chatHistory = JSON.parse(localStorage.getItem('sm_chats') || '[]');
+    let chatHistory = [];
+    let currentUserId = null;
 
-    function saveChats() {
-      localStorage.setItem('sm_chats', JSON.stringify(chatHistory));
+    function updateStats() {
       chatStatsEl.innerText = `${chatHistory.length} message${chatHistory.length === 1 ? '' : 's'}`;
+    }
+
+    // Debounced cloud save — writes to Supabase 1.5s after last message
+    let saveTimer = null;
+    function scheduleSave() {
+      if (!currentUserId) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        saveChatSession(currentUserId, chatHistory,
+          document.getElementById('subject-select')?.value || 'General',
+          selectedPersona
+        );
+      }, 1500);
     }
 
     function appendMessage(sender, text, timestamp = null) {
       if (!timestamp) timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
       const msgDiv = document.createElement('div');
       msgDiv.className = `message ${sender}`;
-
       const avatarDiv = document.createElement('div');
       avatarDiv.className = 'msg-avatar';
       avatarDiv.innerText = sender === 'user' ? 'U' : 'AI';
-
-      const container = document.createElement('div');
+      const container  = document.createElement('div');
       const contentDiv = document.createElement('div');
       contentDiv.className = 'msg-bubble';
-
-      let formatted = text
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      contentDiv.innerHTML = text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/\n/g, '<br>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/`([^`]+)`/g, '<code>$1</code>');
-      contentDiv.innerHTML = formatted;
-
       const timeSpan = document.createElement('div');
       timeSpan.className = 'msg-time';
       timeSpan.innerText = timestamp;
-
       container.appendChild(contentDiv);
       container.appendChild(timeSpan);
       msgDiv.appendChild(avatarDiv);
       msgDiv.appendChild(container);
-
       chatMessages.appendChild(msgDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function getMockAIResponse(query, persona) {
-      if (persona === 'socratic') return `That's an interesting question regarding "${query}". How would you define its foundational mechanism?`;
-      if (persona === 'eli5') return `Imagine "${query}" like building blocks. Each piece fits into place!`;
-      if (persona === 'academic') return `Regarding "${query}": The analytical framework relies on system variables and empirical proofs.`;
-      return `Code example for "${query}":<br><code>const solve = (input) => input.split('').reverse().join('');</code>`;
-    }
-
-    function handleSend() {
+    async function handleSend() {
       const text = chatInput.value.trim();
       if (!text) return;
-
       chatInput.value = '';
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
       appendMessage('user', text, timeStr);
-      chatHistory.push({ sender: 'user', text: text, time: timeStr });
-      saveChats();
-
+      chatHistory.push({ sender: 'user', text, time: timeStr });
+      updateStats();
+      scheduleSave();
       typingIndicator.style.display = 'flex';
       chatMessages.scrollTop = chatMessages.scrollHeight;
-
-      setTimeout(() => {
+      try {
+        const { reply } = await callAI('chat', {
+          messages: chatHistory,
+          persona:  selectedPersona,
+          subject:  document.getElementById('subject-select')?.value || 'General',
+        });
         typingIndicator.style.display = 'none';
-        const responseText = getMockAIResponse(text, selectedPersona);
-        appendMessage('assistant', responseText, timeStr);
-        chatHistory.push({ sender: 'assistant', text: responseText, time: timeStr });
-        saveChats();
-      }, 900);
+        appendMessage('assistant', reply, timeStr);
+        chatHistory.push({ sender: 'assistant', text: reply, time: timeStr });
+      } catch (err) {
+        typingIndicator.style.display = 'none';
+        const fallback = `I'm having trouble connecting to the AI right now. Please try again in a moment.`;
+        appendMessage('assistant', fallback, timeStr);
+        chatHistory.push({ sender: 'assistant', text: fallback, time: timeStr });
+        console.error('[Tutor] AI error:', err);
+      }
+      updateStats();
+      scheduleSave();
     }
 
     btnSend.addEventListener('click', handleSend);
     chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     });
 
-    clearChatBtn.addEventListener('click', () => {
+    clearChatBtn.addEventListener('click', async () => {
       chatHistory = [];
-      saveChats();
       chatMessages.innerHTML = '';
-      appendMessage('assistant', 'Chat session cleared. Select a subject and persona to begin.');
+      updateStats();
+      appendMessage('assistant', 'Chat cleared. Select a subject and persona to begin.');
+      if (currentUserId) await clearChatSession(currentUserId);
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-      if (chatHistory.length > 0) {
-        chatHistory.forEach(m => appendMessage(m.sender, m.text, m.time));
-        saveChats();
-      } else {
-        appendMessage('assistant', 'Welcome to StudyMate AI Chat Studio. Ask your first question to begin!');
+    // ── Bootstrap: load saved chat from Supabase (or welcome message) ──────────
+    ;(async () => {
+      const session = await getSession();
+      if (session) {
+        currentUserId = session.user.id;
+        const saved = await loadChatSession(currentUserId);
+        if (saved?.messages?.length > 0) {
+          chatHistory = saved.messages;
+          chatHistory.forEach(m => appendMessage(m.sender, m.text, m.time));
+          updateStats();
+          return;
+        }
       }
-    });
+      // Guest or no history
+      appendMessage('assistant', 'Welcome to StudyMate AI Chat Studio. Ask your first question to begin!');
+    })();
   </script>
-  <script src="auth-helper.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="auth-helper.js"></script>
 </body>
 </html>

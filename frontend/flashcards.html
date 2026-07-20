@@ -151,32 +151,54 @@
     </div>
   </main>
 
-  <script>
+  <script type="module">
+    import { getSession, saveFlashcardDeck, loadFlashcardDeck, callAI } from './db.js'
+
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    const cardScene = document.getElementById('card-scene');
-    const cardObject = document.getElementById('card-object');
-    const frontText = document.getElementById('front-text');
-    const backText = document.getElementById('back-text');
-    const counterEl = document.getElementById('card-counter');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    const cardScene   = document.getElementById('card-scene');
+    const cardObject  = document.getElementById('card-object');
+    const frontText   = document.getElementById('front-text');
+    const backText    = document.getElementById('back-text');
+    const counterEl   = document.getElementById('card-counter');
+    const prevBtn     = document.getElementById('prev-btn');
+    const nextBtn     = document.getElementById('next-btn');
 
-    const cards = [
-      { front: "What is the Big O time complexity of Binary Search?", back: "O(log n) time complexity." },
-      { front: "What process converts DNA sequences into mRNA molecules?", back: "Transcription (RNA Polymerase enzyme)." },
-      { front: "What is Euler's Formula linking exponential and trigonometric functions?", back: "e^(i * theta) = cos(theta) + i * sin(theta)" }
+    // Add a topic input + generate button above the card
+    const main = document.querySelector('main');
+    const topicBar = document.createElement('div');
+    topicBar.style.cssText = 'display:flex; gap:0.6rem; margin-bottom:1.5rem; width:100%; max-width:520px;';
+    topicBar.innerHTML = `
+      <input id="fc-topic" type="text" placeholder="Topic (e.g. Photosynthesis, Calculus, Python)..."
+        style="flex:1; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12);
+               border-radius:10px; padding:0.55rem 0.85rem; color:#ffffff; font-size:0.82rem;
+               font-family:var(--font-body); outline:none; transition:border-color 0.2s ease;"
+        onfocus="this.style.borderColor='rgba(255,255,255,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'">
+      <button id="fc-gen-btn"
+        style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:10px;
+               padding:0.55rem 1rem; color:#ffffff; font-size:0.8rem; font-weight:600;
+               cursor:pointer; white-space:nowrap; transition:all 0.2s ease;"
+        onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        ✦ Generate Cards
+      </button>`;
+    main.insertBefore(topicBar, main.children[1]);
+
+    let cards = [
+      { front: 'What is the Big O time complexity of Binary Search?', back: 'O(log n) time complexity.' },
+      { front: 'What process converts DNA sequences into mRNA molecules?', back: 'Transcription (RNA Polymerase enzyme).' },
+      { front: "What is Euler's Formula linking exponential and trigonometric functions?", back: 'e^(i * theta) = cos(theta) + i * sin(theta)' },
     ];
 
     let currentCardIndex = 0;
+    let currentUserId = null;
 
     function renderCard() {
       cardObject.classList.remove('flipped');
       setTimeout(() => {
         frontText.innerText = cards[currentCardIndex].front;
-        backText.innerText = cards[currentCardIndex].back;
+        backText.innerText  = cards[currentCardIndex].back;
         counterEl.innerText = `${currentCardIndex + 1} / ${cards.length}`;
       }, 150);
     }
@@ -188,7 +210,42 @@
     nextBtn.addEventListener('click', () => {
       if (currentCardIndex < cards.length - 1) { currentCardIndex++; renderCard(); }
     });
+
+    // Generate AI flashcards
+    document.getElementById('fc-gen-btn').addEventListener('click', async () => {
+      const topic = document.getElementById('fc-topic').value.trim();
+      if (!topic) return;
+      const btn = document.getElementById('fc-gen-btn');
+      btn.textContent = 'Generating...';
+      btn.disabled = true;
+      try {
+        const { cards: aiCards } = await callAI('flashcards', { topic, count: 8 });
+        cards = aiCards;
+        currentCardIndex = 0;
+        renderCard();
+        if (currentUserId) await saveFlashcardDeck(currentUserId, { name: topic, cards });
+      } catch (err) {
+        console.error('[Flashcards] AI error:', err);
+      }
+      btn.textContent = '✦ Generate Cards';
+      btn.disabled = false;
+    });
+
+    // Bootstrap: load saved deck from Supabase
+    ;(async () => {
+      const session = await getSession();
+      if (session) {
+        currentUserId = session.user.id;
+        const deck = await loadFlashcardDeck(currentUserId);
+        if (deck?.cards?.length > 0) {
+          cards = deck.cards;
+          currentCardIndex = 0;
+          renderCard();
+        }
+      }
+    })();
   </script>
-  <script src="auth-helper.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="auth-helper.js"></script>
 </body>
 </html>

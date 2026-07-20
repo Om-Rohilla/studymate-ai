@@ -189,31 +189,57 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    import { getSession, saveNote, loadNotes, loadNoteById, deleteNote, callAI } from './db.js'
+
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    const genBtn = document.getElementById('generate-notes-btn');
-    const rawInput = document.getElementById('notes-raw');
+    const genBtn     = document.getElementById('generate-notes-btn');
+    const rawInput   = document.getElementById('notes-raw');
+    const formatSel  = document.getElementById('notes-format');
     const notesOutput = document.getElementById('notes-output');
-    const copyBtn = document.getElementById('copy-btn');
-    const exportBtn = document.getElementById('export-btn');
+    const copyBtn    = document.getElementById('copy-btn');
+    const exportBtn  = document.getElementById('export-btn');
+    const savedList  = document.getElementById('saved-notes-list');
+    const notesTitle = document.getElementById('notes-title');
 
-    genBtn.addEventListener('click', () => {
-      const text = rawInput.value.trim();
+    let currentUserId = null;
+
+    // ── Generate notes (mock) ─────────────────────────────────────────────────
+    genBtn.addEventListener('click', async () => {
+      const text   = rawInput.value.trim();
+      const format = formatSel.value;
       if (!text) return;
 
-      notesOutput.innerHTML = `
-        <h3>AI Synthesized Note Summary</h3>
-        <p>Based on your input notes:</p>
-        <ul>
-          <li><strong>Key Concept 1:</strong> ${text.substring(0, 80)}...</li>
-          <li><strong>Key Concept 2:</strong> Core mathematical formulations and practical examples.</li>
-        </ul>
-      `;
+      genBtn.disabled = true;
+      genBtn.querySelector('span').textContent = 'Generating...';
+
+      try {
+        const { output_html, title } = await callAI('notes', { raw_text: text, format });
+        notesOutput.innerHTML = output_html;
+        notesTitle.textContent = title || text.substring(0, 50) + '...';
+
+        if (currentUserId) {
+          const saved = await saveNote(currentUserId, {
+            title: title || text.substring(0, 50) + '...',
+            rawInput: text,
+            outputHtml: output_html,
+            format,
+          });
+          if (saved) renderSavedList(await loadNotes(currentUserId));
+        }
+      } catch (err) {
+        console.error('[Notes] AI error:', err);
+        notesOutput.innerHTML = `<p style="color:var(--danger)">AI generation failed. Please check your API key and try again.</p>`;
+      }
+
+      genBtn.disabled = false;
+      genBtn.querySelector('span').textContent = 'Generate Notes';
     });
 
+    // ── Copy / Export ─────────────────────────────────────────────────────────
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(notesOutput.innerText);
       copyBtn.innerText = 'Copied!';
@@ -227,7 +253,55 @@
       a.download = 'StudyMate_Notes.txt';
       a.click();
     });
+
+    // ── Render saved notes sidebar ────────────────────────────────────────────
+    function renderSavedList(notes) {
+      if (!notes || notes.length === 0) {
+        savedList.innerHTML = '<div style="font-size:0.75rem; color:var(--text-dim);">No saved guides yet.</div>';
+        return;
+      }
+      savedList.innerHTML = notes.map(n => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:0.4rem;">
+          <button data-id="${n.id}" class="load-note-btn"
+            style="background:rgba(255,255,255,0.04); border:1px solid var(--border-subtle); border-radius:8px;
+                   padding:0.4rem 0.6rem; color:var(--text-main); font-size:0.73rem; cursor:pointer;
+                   text-align:left; flex:1; transition:background 0.2s ease;">
+            ${n.title}
+          </button>
+          <button data-id="${n.id}" class="del-note-btn"
+            style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.85rem; padding:0.3rem;">
+            &times;
+          </button>
+        </div>`).join('');
+
+      savedList.querySelectorAll('.load-note-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const note = await loadNoteById(btn.dataset.id);
+          if (note) {
+            notesOutput.innerHTML = note.output_html;
+            notesTitle.textContent = note.title;
+          }
+        });
+      });
+
+      savedList.querySelectorAll('.del-note-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await deleteNote(btn.dataset.id);
+          renderSavedList(await loadNotes(currentUserId));
+        });
+      });
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+    ;(async () => {
+      const session = await getSession();
+      if (session) {
+        currentUserId = session.user.id;
+        renderSavedList(await loadNotes(currentUserId));
+      }
+    })();
   </script>
-  <script src="auth-helper.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="auth-helper.js"></script>
 </body>
 </html>

@@ -184,35 +184,89 @@
     </div>
   </main>
 
-  <script>
+  <script type="module">
+    import { getSession, savePlan, loadLatestPlan, callAI } from './db.js'
+
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    const planBtn = document.getElementById('generate-plan-btn');
-    const examInput = document.getElementById('exam-name');
-    const daysSelect = document.getElementById('exam-days');
+    const planBtn           = document.getElementById('generate-plan-btn');
+    const examInput         = document.getElementById('exam-name');
+    const daysSelect        = document.getElementById('exam-days');
+    const hoursSelect       = document.getElementById('daily-hours');
     const timelineContainer = document.getElementById('timeline-container');
 
-    planBtn.addEventListener('click', () => {
-      const subject = examInput.value.trim() || 'Exam';
-      const days = parseInt(daysSelect.value);
+    let currentUserId = null;
 
-      timelineContainer.innerHTML = '';
-      for (let i = 1; i <= days; i++) {
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        item.innerHTML = `
+    function buildPlanItems(subject, days, hoursDay) {
+      const phases = [
+        'Core Fundamentals Review',
+        'Practice Problems & Active Recall',
+        'Deep Dive — Advanced Concepts',
+        'Formula Sheet & Key Term Synthesis',
+        'Mock Exam & Weak Spot Analysis',
+        'Speed Drills & Timed Practice',
+        'Final Comprehensive Review',
+      ];
+      return Array.from({ length: days }, (_, i) => ({
+        day:         i + 1,
+        title:       `${subject} — ${phases[i % phases.length]}`,
+        description: `${hoursDay}h of targeted active recall, AI Tutor sessions, and flashcard review.`,
+      }));
+    }
+
+    function renderTimeline(planItems) {
+      timelineContainer.innerHTML = planItems.map(item => `
+        <div class="timeline-item">
           <div>
-            <span class="day-badge">Day ${i}</span>
-            <h3 style="font-size: 0.95rem; margin-top:0.4rem;">${subject} — Module ${i} Focus</h3>
-            <p style="font-size:0.8rem; margin-top:0.15rem;">Targeted active recall, flashcard review, and AI Tutor practice sessions.</p>
+            <span class="day-badge">Day ${item.day}</span>
+            <h3 style="font-size: 0.95rem; margin-top:0.4rem;">${item.title}</h3>
+            <p style="font-size:0.8rem; margin-top:0.15rem; color:var(--text-muted);">${item.description}</p>
           </div>
-        `;
-        timelineContainer.appendChild(item);
+        </div>`).join('');
+    }
+
+    planBtn.addEventListener('click', async () => {
+      const subject  = examInput.value.trim() || 'Exam';
+      const days     = parseInt(daysSelect.value);
+      const hoursDay = parseInt(hoursSelect.value);
+
+      planBtn.disabled = true;
+      planBtn.querySelector('span').textContent = 'Generating...';
+
+      try {
+        const { plan_items } = await callAI('plan', { subject, days, hours_day: hoursDay });
+        renderTimeline(plan_items);
+        if (currentUserId) await savePlan(currentUserId, { subject, days, hoursDay, planItems: plan_items });
+      } catch (err) {
+        console.error('[Planner] AI error:', err);
+        // Fallback to local generation
+        const planItems = buildPlanItems(subject, days, hoursDay);
+        renderTimeline(planItems);
+        if (currentUserId) await savePlan(currentUserId, { subject, days, hoursDay, planItems });
       }
+
+      planBtn.disabled = false;
+      planBtn.querySelector('span').textContent = 'Create Schedule';
     });
+
+    // Bootstrap: restore last plan from Supabase
+    ;(async () => {
+      const session = await getSession();
+      if (session) {
+        currentUserId = session.user.id;
+        const lastPlan = await loadLatestPlan(currentUserId);
+        if (lastPlan?.plan_items?.length > 0) {
+          examInput.value   = lastPlan.subject || '';
+          daysSelect.value  = String(lastPlan.days || 7);
+          hoursSelect.value = String(lastPlan.hours_day || 2);
+          renderTimeline(lastPlan.plan_items);
+        }
+      }
+    })();
   </script>
-  <script src="auth-helper.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="auth-helper.js"></script>
 </body>
 </html>

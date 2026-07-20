@@ -240,41 +240,63 @@
     </div>
   </main>
 
-  <script>
+  <script type="module">
+    import { getSession, saveQuizScore, loadQuizHistory, callAI } from './db.js'
+
     const menuToggle = document.getElementById('menu-toggle');
     const navbar = document.getElementById('navbar');
     menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
 
-    const startBtn = document.getElementById('start-quiz-btn');
-    const topicInput = document.getElementById('quiz-topic');
+    const startBtn    = document.getElementById('start-quiz-btn');
+    const topicInput  = document.getElementById('quiz-topic');
     const countSelect = document.getElementById('quiz-count');
+    const diffSelect  = document.getElementById('quiz-difficulty');
     const questionCard = document.getElementById('question-card');
-    const scoreCard = document.getElementById('score-card');
-    
-    const qNum = document.getElementById('q-num');
-    const qText = document.getElementById('q-text');
-    const optionList = document.getElementById('option-list');
-    const nextBtn = document.getElementById('next-q-btn');
-    const restartBtn = document.getElementById('restart-quiz-btn');
-    const finalScore = document.getElementById('final-score');
-    const scoreText = document.getElementById('score-text');
+    const scoreCard   = document.getElementById('score-card');
+    const qNum        = document.getElementById('q-num');
+    const qText       = document.getElementById('q-text');
+    const optionList  = document.getElementById('option-list');
+    const nextBtn     = document.getElementById('next-q-btn');
+    const restartBtn  = document.getElementById('restart-quiz-btn');
+    const finalScore  = document.getElementById('final-score');
+    const scoreText   = document.getElementById('score-text');
 
-    let currentQuestions = [];
-    let currentIndex = 0;
-    let correctCount = 0;
+    let currentQuestions = [], currentIndex = 0, correctCount = 0;
+    let currentUserId = null;
 
     const mockDatabase = [
-      { question: "What is the powerhouse organelle responsible for ATP production?", options: ["Ribosome", "Mitochondria", "Golgi Apparatus", "Endoplasmic Reticulum"], correct: 1 },
-      { question: "Which law states that energy cannot be created or destroyed?", options: ["First Law of Thermodynamics", "Second Law of Thermodynamics", "Newton's Third Law", "Ohm's Law"], correct: 0 },
-      { question: "What is the chemical symbol for Gold on the periodic table?", options: ["Ag", "Fe", "Au", "Pb"], correct: 2 }
+      { question: 'What is the powerhouse organelle responsible for ATP production?', options: ['Ribosome', 'Mitochondria', 'Golgi Apparatus', 'Endoplasmic Reticulum'], correct: 1 },
+      { question: 'Which law states that energy cannot be created or destroyed?', options: ['First Law of Thermodynamics', 'Second Law of Thermodynamics', "Newton's Third Law", "Ohm's Law"], correct: 0 },
+      { question: 'What is the chemical symbol for Gold on the periodic table?', options: ['Ag', 'Fe', 'Au', 'Pb'], correct: 2 },
+      { question: 'What does CPU stand for?', options: ['Central Processing Unit', 'Computer Processing Utility', 'Control Processing Unit', 'Core Power Unit'], correct: 0 },
+      { question: 'Which planet is closest to the Sun?', options: ['Venus', 'Earth', 'Mars', 'Mercury'], correct: 3 },
     ];
 
-    startBtn.addEventListener('click', () => {
-      const count = parseInt(countSelect.value);
-      currentQuestions = mockDatabase.slice(0, count);
+    startBtn.addEventListener('click', async () => {
+      const count  = parseInt(countSelect.value);
+      const topic  = topicInput.value.trim() || 'General Knowledge';
+      const diff   = diffSelect.value;
+
+      startBtn.disabled = true;
+      startBtn.textContent = 'Generating Quiz...';
+
+      try {
+        const { questions } = await callAI('quiz', { topic, count, difficulty: diff });
+        currentQuestions = questions;
+      } catch (err) {
+        console.error('[Quiz] AI error:', err);
+        // Fallback to built-in questions
+        currentQuestions = [
+          { question: 'What is the powerhouse organelle responsible for ATP production?', options: ['Ribosome', 'Mitochondria', 'Golgi Apparatus', 'Endoplasmic Reticulum'], correct: 1 },
+          { question: 'Which law states that energy cannot be created or destroyed?', options: ['First Law of Thermodynamics', 'Second Law of Thermodynamics', "Newton's Third Law", "Ohm's Law"], correct: 0 },
+          { question: 'What is the chemical symbol for Gold on the periodic table?', options: ['Ag', 'Fe', 'Au', 'Pb'], correct: 2 },
+        ].slice(0, count);
+      }
+
+      startBtn.disabled = false;
+      startBtn.textContent = 'Start Quiz';
       currentIndex = 0;
       correctCount = 0;
-
       scoreCard.style.display = 'none';
       questionCard.classList.add('active');
       renderQuestion();
@@ -286,18 +308,18 @@
       qText.innerText = q.question;
       optionList.innerHTML = '';
       nextBtn.style.display = 'none';
-
       q.options.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        const keyChar = String.fromCharCode(65 + idx);
-        btn.innerHTML = `<span class="opt-key">${keyChar}</span> <span>${opt}</span>`;
+        btn.innerHTML = `<span class="opt-key">${String.fromCharCode(65 + idx)}</span> <span>${opt}</span>`;
         btn.addEventListener('click', () => {
-          if (idx === q.correct) {
-            btn.classList.add('correct');
-            correctCount++;
-          } else {
+          if (btn.dataset.answered) return;
+          btn.dataset.answered = '1';
+          optionList.querySelectorAll('.option-btn').forEach(b => b.dataset.answered = '1');
+          if (idx === q.correct) { btn.classList.add('correct'); correctCount++; }
+          else {
             btn.classList.add('wrong');
+            optionList.querySelectorAll('.option-btn')[q.correct]?.classList.add('correct');
           }
           nextBtn.style.display = 'inline-flex';
         });
@@ -314,12 +336,52 @@
         scoreCard.style.display = 'block';
         const pct = Math.round((correctCount / currentQuestions.length) * 100);
         finalScore.innerText = `${pct}%`;
-        scoreText.innerText = `You answered ${correctCount} out of ${currentQuestions.length} questions correctly.`;
+        scoreText.innerText = `You answered ${correctCount} out of ${currentQuestions.length} correctly.`;
+
+        // Save to Supabase if logged in
+        if (currentUserId) {
+          saveQuizScore(currentUserId, {
+            topic:      topicInput.value.trim() || 'General',
+            difficulty: diffSelect.value,
+            scorePct:   pct,
+            correct:    correctCount,
+            total:      currentQuestions.length,
+          }).then(() => loadAndRenderHistory());
+        }
       }
     });
 
     restartBtn.addEventListener('click', () => scoreCard.style.display = 'none');
+
+    // ── Score history ──────────────────────────────────────────────────────────
+    async function loadAndRenderHistory() {
+      if (!currentUserId) return;
+      const history = await loadQuizHistory(currentUserId);
+      let histEl = document.getElementById('quiz-history');
+      if (!histEl) {
+        histEl = document.createElement('div');
+        histEl.id = 'quiz-history';
+        histEl.style.cssText = 'margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-subtle);';
+        scoreCard.appendChild(histEl);
+      }
+      if (!history.length) { histEl.innerHTML = ''; return; }
+      histEl.innerHTML = `
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.07em;">Recent Scores</p>
+        ${history.map(h => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.78rem;">
+            <span style="color:var(--text-muted);">${h.topic} &middot; ${h.difficulty}</span>
+            <span style="font-weight:700; color:${h.score_pct >= 70 ? '#10b981' : h.score_pct >= 40 ? '#f59e0b' : '#ef4444'}">${h.score_pct}%</span>
+          </div>`).join('')}
+      `;
+    }
+
+    // ── Bootstrap ──────────────────────────────────────────────────────────────
+    ;(async () => {
+      const session = await getSession();
+      if (session) currentUserId = session.user.id;
+    })();
   </script>
-  <script src="auth-helper.js"></script>
+  <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="auth-helper.js"></script>
 </body>
 </html>

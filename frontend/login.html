@@ -33,7 +33,6 @@
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      position: relative;
     }
 
     .auth-header {
@@ -49,6 +48,7 @@
       font-weight: 800;
       font-size: 1.15rem;
       color: #ffffff;
+      text-decoration: none;
       margin-bottom: 1.25rem;
     }
 
@@ -96,11 +96,17 @@
       gap: 0.6rem;
       transition: var(--transition);
       margin-bottom: 1.25rem;
+      font-family: var(--font-body);
     }
 
     .google-btn:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--border-hover);
+    }
+
+    .google-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
     .divider {
@@ -121,13 +127,9 @@
       background: var(--border-subtle);
     }
 
-    .divider span {
-      padding: 0 0.75rem;
-    }
+    .divider span { padding: 0 0.75rem; }
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
+    .form-group { margin-bottom: 1rem; }
 
     .form-label {
       display: block;
@@ -159,6 +161,34 @@
       width: 100%;
       margin-top: 0.5rem;
     }
+
+    .submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .success-msg {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -185,6 +215,11 @@
         <p style="font-size: 0.78rem; color: var(--text-muted);" id="form-subheading">Enter your credentials to access your AI study studio.</p>
       </div>
 
+      <!-- Error / Success alerts -->
+      <div class="error-msg"   id="error-msg"></div>
+      <div class="success-msg" id="success-msg"></div>
+
+      <!-- Google OAuth -->
       <button class="google-btn" id="google-sso-btn">
         <svg width="16" height="16" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -195,11 +230,10 @@
         <span>Continue with Google</span>
       </button>
 
-      <div class="divider">
-        <span>Or with Email</span>
-      </div>
+      <div class="divider"><span>Or with Email</span></div>
 
       <form id="auth-form">
+        <!-- Name field (signup only) -->
         <div class="form-group" id="name-group" style="display:none;">
           <label class="form-label" for="full-name">Full Name</label>
           <input type="text" id="full-name" class="input-field" placeholder="Alex Morgan">
@@ -212,7 +246,7 @@
 
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+          <input type="password" id="password" class="input-field" placeholder="••••••••" required minlength="6">
         </div>
 
         <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
@@ -222,41 +256,146 @@
     </div>
   </main>
 
-  <script>
-    const tabSignin = document.getElementById('tab-signin');
-    const tabSignup = document.getElementById('tab-signup');
-    const nameGroup = document.getElementById('name-group');
-    const heading = document.getElementById('form-heading');
-    const subheading = document.getElementById('form-subheading');
-    const submitText = document.getElementById('submit-text');
+  <script type="module">
+    import { supabase } from './supabase-client.js'
 
-    let mode = 'signin';
+    // ── If already logged in, redirect to intended page ─────────────────────────
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const params   = new URLSearchParams(window.location.search)
+      const returnTo = params.get('returnTo') || 'index.html'
+      window.location.replace(decodeURIComponent(returnTo))
+    }
+
+    // ── Destination after login (from auth-guard redirect) ────────────────────
+    const _params   = new URLSearchParams(window.location.search)
+    const _returnTo = _params.get('returnTo') || 'index.html'
+
+    // ── Tab switching ──────────────────────────────────────────────────────────
+    const tabSignin  = document.getElementById('tab-signin')
+    const tabSignup  = document.getElementById('tab-signup')
+    const nameGroup  = document.getElementById('name-group')
+    const heading    = document.getElementById('form-heading')
+    const subheading = document.getElementById('form-subheading')
+    const submitText = document.getElementById('submit-text')
+    const submitBtn  = document.getElementById('submit-btn')
+    const errorMsg   = document.getElementById('error-msg')
+    const successMsg = document.getElementById('success-msg')
+
+    let mode = 'signin'
+
+    function clearAlerts() {
+      errorMsg.style.display   = 'none'
+      errorMsg.textContent     = ''
+      successMsg.style.display = 'none'
+      successMsg.textContent   = ''
+    }
+
+    function showError(msg) {
+      clearAlerts()
+      errorMsg.textContent   = msg
+      errorMsg.style.display = 'block'
+    }
+
+    function showSuccess(msg) {
+      clearAlerts()
+      successMsg.textContent   = msg
+      successMsg.style.display = 'block'
+    }
 
     tabSignin.addEventListener('click', () => {
-      mode = 'signin';
-      tabSignin.classList.add('active');
-      tabSignup.classList.remove('active');
-      nameGroup.style.display = 'none';
-      heading.innerText = 'Welcome back';
-      subheading.innerText = 'Enter your credentials to access your AI study studio.';
-      submitText.innerText = 'Sign In';
-    });
+      mode = 'signin'
+      tabSignin.classList.add('active')
+      tabSignup.classList.remove('active')
+      nameGroup.style.display = 'none'
+      heading.textContent     = 'Welcome back'
+      subheading.textContent  = 'Enter your credentials to access your AI study studio.'
+      submitText.textContent  = 'Sign In'
+      clearAlerts()
+    })
 
     tabSignup.addEventListener('click', () => {
-      mode = 'signup';
-      tabSignup.classList.add('active');
-      tabSignin.classList.remove('active');
-      nameGroup.style.display = 'block';
-      heading.innerText = 'Create Account';
-      subheading.innerText = 'Start your AI learning journey in seconds.';
-      submitText.innerText = 'Create Account';
-    });
+      mode = 'signup'
+      tabSignup.classList.add('active')
+      tabSignin.classList.remove('active')
+      nameGroup.style.display = 'block'
+      heading.textContent     = 'Create Account'
+      subheading.textContent  = 'Start your AI learning journey in seconds.'
+      submitText.textContent  = 'Create Account'
+      clearAlerts()
+    })
 
-    document.getElementById('auth-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      localStorage.setItem('sm_auth_token', 'demo_jwt_token_sample');
-      window.location.href = 'index.html';
-    });
+    // ── Google OAuth ────────────────────────────────────────────────────────────
+    document.getElementById('google-sso-btn').addEventListener('click', async () => {
+      clearAlerts()
+      const btn = document.getElementById('google-sso-btn')
+      btn.disabled = true
+      btn.querySelector('span').textContent = 'Redirecting...'
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/index.html',
+        },
+      })
+
+      if (error) {
+        showError(error.message)
+        btn.disabled = false
+        btn.querySelector('span').textContent = 'Continue with Google'
+      }
+    })
+
+    // ── Email Form Submit ──────────────────────────────────────────────────────
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      clearAlerts()
+
+      const email    = document.getElementById('email').value.trim()
+      const password = document.getElementById('password').value
+      const fullName = document.getElementById('full-name').value.trim()
+
+      submitBtn.disabled = true
+      submitText.textContent = mode === 'signin' ? 'Signing in...' : 'Creating account...'
+
+      try {
+        if (mode === 'signin') {
+          // ── SIGN IN ──────────────────────────────────────────────────────────
+          const { error } = await supabase.auth.signInWithPassword({ email, password })
+          if (error) {
+            showError(error.message)
+          } else {
+            showSuccess('Signed in! Redirecting...')
+            setTimeout(() => window.location.replace(decodeURIComponent(_returnTo)), 700)
+          }
+
+        } else {
+          // ── SIGN UP ──────────────────────────────────────────────────────────
+          if (!fullName) {
+            showError('Please enter your full name.')
+            return
+          }
+
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { full_name: fullName },
+            },
+          })
+
+          if (error) {
+            showError(error.message)
+          } else {
+            showSuccess('Account created! Check your email to confirm, then sign in.')
+            tabSignin.click()   // Switch back to sign-in tab
+          }
+        }
+      } finally {
+        submitBtn.disabled = false
+        submitText.textContent = mode === 'signin' ? 'Sign In' : 'Create Account'
+      }
+    })
   </script>
 </body>
 </html>
