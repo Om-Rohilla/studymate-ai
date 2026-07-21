@@ -14,28 +14,17 @@ export async function getSession() {
 }
 
 // ─── AI Service — calls the Edge Function ────────────────────────────────────
-/**
- * callAI(action, params)
- *
- * Calls the Supabase Edge Function ai-service with the user's auth token.
- * Falls back gracefully if the function is not deployed or API key is missing.
- *
- * @param {string} action  - 'chat' | 'notes' | 'quiz' | 'flashcards' | 'plan'
- * @param {object} params  - Action-specific parameters
- * @returns {Promise<object>} - Response from the Edge Function
- */
 export async function callAI(action, params = {}) {
   const session  = await getSession()
   const anonKey  = import.meta.env.VITE_SUPABASE_ANON_KEY
   const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-service`
 
-  // Supabase Edge Functions require BOTH apikey AND Authorization headers
   const headers = {
     'Content-Type': 'application/json',
     'apikey':       anonKey,
     'Authorization': session?.access_token
       ? `Bearer ${session.access_token}`
-      : `Bearer ${anonKey}`,   // anon fallback so unauthenticated calls still reach the function
+      : `Bearer ${anonKey}`,
   }
 
   const res = await fetch(FUNCTION_URL, {
@@ -52,23 +41,94 @@ export async function callAI(action, params = {}) {
   return res.json()
 }
 
-// ─── Chat Sessions (AI Tutor) ─────────────────────────────────────────────────
+// ─── Chat Sessions (Multi-session AI Tutor) ───────────────────────────────────
 
-/** Save / overwrite the active chat session for the current user. */
-export async function saveChatSession(userId, messages, subject = 'General', persona = 'socratic') {
+/** Create a brand new chat session. Returns the new session row. */
+export async function createChatSession(userId, subject = 'General', persona = 'socratic') {
   const { data, error } = await supabase
     .from('chat_sessions')
-    .upsert({
+    .insert({
       user_id:    userId,
       subject,
       persona,
-      messages,
+      title:      'New Chat',
+      messages:   [],
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' })
+    })
     .select()
     .single()
 
-  if (error) console.error('[DB] saveChatSession:', error.message)
+  if (error) console.error('[DB] createChatSession:', error.message)
+  return data
+}
+
+/** Save/update a specific chat session by its ID. */
+export async function saveChatSession(userId, messages, subject = 'General', persona = 'socratic', sessionId = null) {
+  // Auto-generate title from first user message
+  const firstMsg = messages.find(m => m.sender === 'user')
+  const title = firstMsg
+    ? firstMsg.text.substring(0, 48) + (firstMsg.text.length > 48 ? '…' : '')
+    : 'New Chat'
+
+  if (sessionId) {
+    const { data, error } = await supabase
+      .from('chat_sessions')
+      .update({
+        subject,
+        persona,
+        title,
+        messages,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (error) console.error('[DB] saveChatSession (update):', error.message)
+    return data
+  } else {
+    // Legacy: upsert by user_id (single-session fallback)
+    const { data, error } = await supabase
+      .from('chat_sessions')
+      .upsert({
+        user_id:    userId,
+        subject,
+        persona,
+        title,
+        messages,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' })
+      .select()
+      .single()
+
+    if (error) console.error('[DB] saveChatSession (upsert):', error.message)
+    return data
+  }
+}
+
+/** Load all chat sessions for the current user, newest first. */
+export async function loadAllChatSessions(userId) {
+  const { data, error } = await supabase
+    .from('chat_sessions')
+    .select('id, title, subject, persona, updated_at')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false })
+    .limit(30)
+
+  if (error) console.error('[DB] loadAllChatSessions:', error.message)
+  return data || []
+}
+
+/** Load a single chat session's full messages. */
+export async function loadChatSessionById(sessionId) {
+  const { data, error } = await supabase
+    .from('chat_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .single()
+
+  if (error) console.error('[DB] loadChatSessionById:', error.message)
   return data
 }
 
@@ -76,7 +136,7 @@ export async function saveChatSession(userId, messages, subject = 'General', per
 export async function loadChatSession(userId) {
   const { data, error } = await supabase
     .from('chat_sessions')
-    .select('messages, subject, persona')
+    .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(1)
@@ -86,11 +146,23 @@ export async function loadChatSession(userId) {
   return data
 }
 
-/** Clear chat history for the current user. */
+/** Delete a specific chat session. */
+export async function deleteChatSession(sessionId, userId) {
+  const { error } = await supabase
+    .from('chat_sessions')
+    .delete()
+    .eq('id', sessionId)
+    .eq('user_id', userId)
+
+  if (error) console.error('[DB] deleteChatSession:', error.message)
+  return !error
+}
+
+/** Clear chat history for the current user (legacy single-session). */
 export async function clearChatSession(userId) {
   const { error } = await supabase
     .from('chat_sessions')
-    .update({ messages: [], updated_at: new Date().toISOString() })
+    .update({ messages: [], title: 'New Chat', updated_at: new Date().toISOString() })
     .eq('user_id', userId)
 
   if (error) console.error('[DB] clearChatSession:', error.message)
@@ -123,7 +195,7 @@ export async function loadNotes(userId) {
     .select('id, title, format, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(20)
 
   if (error) console.error('[DB] loadNotes:', error.message)
   return data || []
@@ -250,4 +322,26 @@ export async function loadLatestPlan(userId) {
 
   if (error) console.error('[DB] loadLatestPlan:', error.message)
   return data
+}
+
+// ─── Dashboard Stats ──────────────────────────────────────────────────────────
+
+/** Load aggregate stats for the dashboard. */
+export async function loadDashboardStats(userId) {
+  const [chats, notes, quizzes, plans] = await Promise.allSettled([
+    supabase.from('chat_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('notes').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('quiz_sessions').select('score_pct').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
+    supabase.from('planner_plans').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+  ])
+
+  const chatCount  = chats.status  === 'fulfilled' ? (chats.value.count  || 0) : 0
+  const noteCount  = notes.status  === 'fulfilled' ? (notes.value.count  || 0) : 0
+  const planCount  = plans.status  === 'fulfilled' ? (plans.value.count  || 0) : 0
+  const quizData   = quizzes.status === 'fulfilled' ? (quizzes.value.data || []) : []
+  const avgScore   = quizData.length
+    ? Math.round(quizData.reduce((s, r) => s + (r.score_pct || 0), 0) / quizData.length)
+    : null
+
+  return { chatCount, noteCount, planCount, quizCount: quizData.length, avgScore }
 }

@@ -1,0 +1,13 @@
+# For local development via supabase start
+project_id = "rfeirfwtlmlyebfqmnen"
+
+[api]
+enabled = true
+port = 54321
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+
+[functions.ai-service]
+verify_jwt = false

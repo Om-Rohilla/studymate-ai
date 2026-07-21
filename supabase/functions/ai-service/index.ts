@@ -2,7 +2,7 @@
  * Supabase Edge Function: ai-service
  *
  * A single unified AI proxy for StudyMate AI.
- * Routes all AI tasks to Google Gemini Flash (free tier).
+ * Provider priority: Groq (free) → Gemini (free tier) → Gemini 1.5 Flash (fallback)
  *
  * Endpoint: POST /functions/v1/ai-service
  *
@@ -18,17 +18,59 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 
+// ── Provider config ───────────────────────────────────────────────────────────
+const GROQ_API_KEY   = Deno.env.get('GROQ_API_KEY')
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-// gemini-2.0-flash is the current free-tier model
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+
+// Groq uses OpenAI-compatible endpoint
+const GROQ_URL    = 'https://api.groq.com/openai/v1/chat/completions'
+const GROQ_MODEL  = 'llama-3.3-70b-versatile'
+
+// Gemini REST endpoint
+const GEMINI_URL  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, content-type',
+  'Access-Control-Allow-Headers': 'authorization, content-type, apikey',
 }
 
-// ── Call Gemini API ──────────────────────────────────────────────────────────
+// ── Detect active provider ────────────────────────────────────────────────────
+function getProvider(): 'groq' | 'gemini' | null {
+  if (GROQ_API_KEY && GROQ_API_KEY.trim().length > 10)   return 'groq'
+  if (GEMINI_API_KEY && GEMINI_API_KEY.trim().length > 10) return 'gemini'
+  return null
+}
+
+// ── Call Groq (OpenAI-compatible) ─────────────────────────────────────────────
+async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
+  const res = await fetch(GROQ_URL, {
+    method:  'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user',   content: userPrompt   },
+      ],
+      temperature:  0.7,
+      max_tokens:   1500,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Groq API error ${res.status}: ${err}`)
+  }
+
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content?.trim() ?? ''
+}
+
+// ── Call Gemini REST API ──────────────────────────────────────────────────────
 async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
   const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method:  'POST',
@@ -39,7 +81,7 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
       ],
       generationConfig: {
         temperature:     0.7,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 1500,
       },
     }),
   })
@@ -51,6 +93,17 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
 
   const data = await res.json()
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+}
+
+// ── Universal LLM call (auto-selects provider) ────────────────────────────────
+async function callLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+  const provider = getProvider()
+  if (!provider) {
+    throw new Error('No API key configured. Add GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.')
+  }
+  if (provider === 'groq')   return callGroq(systemPrompt, userPrompt)
+  if (provider === 'gemini') return callGemini(systemPrompt, userPrompt)
+  throw new Error('Unknown provider')
 }
 
 // ── Action handlers ───────────────────────────────────────────────────────────
@@ -81,7 +134,7 @@ Keep responses concise (max 3–4 paragraphs). Format clearly with **bold** for 
     ? `Conversation so far:\n${conversationText}\n\nStudent's latest question: ${lastUserMsg}`
     : `Student asks: ${lastUserMsg}`
 
-  const reply = await callGemini(systemPrompt, userPrompt)
+  const reply = await callLLM(systemPrompt, userPrompt)
   return { reply }
 }
 
@@ -100,9 +153,9 @@ ${formatInstructions[format] ?? formatInstructions.bullet}
 Return clean HTML using only: h3, p, ul, li, strong, em, code, table, tr, td, th tags.
 Do NOT include html/body/head tags. Just the content HTML.`
 
-  const userPrompt = `Create ${format} format study notes from this content:\n\n${raw_text.substring(0, 3000)}`
+  const userPrompt = `Create ${format} format study notes from this content:\n\n${raw_text.substring(0, 4000)}`
 
-  const outputHtml = await callGemini(systemPrompt, userPrompt)
+  const outputHtml = await callLLM(systemPrompt, userPrompt)
   const title = raw_text.substring(0, 50).replace(/\s+/g, ' ').trim() + '...'
   return { output_html: outputHtml, title }
 }
@@ -136,7 +189,7 @@ Rules:
 
   const userPrompt = `Generate ${count} ${difficulty} quiz questions about: ${topic}`
 
-  const raw = await callGemini(systemPrompt, userPrompt)
+  const raw = await callLLM(systemPrompt, userPrompt)
 
   // Extract JSON from response (handle markdown code blocks)
   const jsonMatch = raw.match(/\[[\s\S]*\]/)
@@ -168,7 +221,7 @@ Rules:
 
   const userPrompt = `Generate ${count} flashcards about: ${topic}`
 
-  const raw = await callGemini(systemPrompt, userPrompt)
+  const raw = await callLLM(systemPrompt, userPrompt)
 
   const jsonMatch = raw.match(/\[[\s\S]*\]/)
   if (!jsonMatch) throw new Error('Invalid flashcard format from AI')
@@ -201,7 +254,7 @@ Rules:
 
   const userPrompt = `Create a ${days}-day study plan for: ${subject} (${hours_day} hours/day)`
 
-  const raw = await callGemini(systemPrompt, userPrompt)
+  const raw = await callLLM(systemPrompt, userPrompt)
 
   const jsonMatch = raw.match(/\[[\s\S]*\]/)
   if (!jsonMatch) throw new Error('Invalid plan format from AI')
@@ -224,8 +277,9 @@ serve(async (req: Request) => {
     })
   }
 
-  if (!GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured in Edge Function secrets.' }), {
+  const provider = getProvider()
+  if (!provider) {
+    return new Response(JSON.stringify({ error: 'No AI API key configured. Add GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.' }), {
       status: 500,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     })
@@ -255,7 +309,7 @@ serve(async (req: Request) => {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     })
 
-  } catch (err) {
+  } catch (err: any) {
     console.error('[ai-service] Error:', err)
     return new Response(JSON.stringify({ error: err.message ?? 'Internal server error' }), {
       status: 500,
