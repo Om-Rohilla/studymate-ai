@@ -71,6 +71,7 @@ export async function saveChatSession(userId, messages, subject = 'General', per
     : 'New Chat'
 
   if (sessionId) {
+    // UPDATE existing session by ID
     const { data, error } = await supabase
       .from('chat_sessions')
       .update({
@@ -88,21 +89,21 @@ export async function saveChatSession(userId, messages, subject = 'General', per
     if (error) console.error('[DB] saveChatSession (update):', error.message)
     return data
   } else {
-    // Legacy: upsert by user_id (single-session fallback)
+    // INSERT new session (multi-session: no unique constraint on user_id)
     const { data, error } = await supabase
       .from('chat_sessions')
-      .upsert({
+      .insert({
         user_id:    userId,
         subject,
         persona,
         title,
         messages,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' })
+      })
       .select()
       .single()
 
-    if (error) console.error('[DB] saveChatSession (upsert):', error.message)
+    if (error) console.error('[DB] saveChatSession (insert):', error.message)
     return data
   }
 }
