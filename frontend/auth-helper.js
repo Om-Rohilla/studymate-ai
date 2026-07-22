@@ -47,6 +47,7 @@ import { supabase } from './supabase-client.js'
       display: inline-flex;
       align-items: center;
       margin-left: 0.5rem;
+      justify-self: end;
     }
     .avatar-circle {
       width: 34px; height: 34px;
@@ -255,12 +256,12 @@ import { supabase } from './supabase-client.js'
   }
 
   function getNavbar() {
-    return document.getElementById('navbar')
+    return document.querySelector('.nav-container')
   }
 
-  function clearNavAuth(navbar) {
-    navbar.querySelector('.user-profile-menu')?.remove()
-    navbar.querySelector('#nav-auth-btn')?.remove()
+  function clearNavAuth(container) {
+    container.querySelector('.user-profile-menu')?.remove()
+    container.querySelector('#nav-auth-btn')?.remove()
   }
 
   // ─── Render: Sign In button ───────────────────────────────────────────────────
@@ -534,28 +535,28 @@ import { supabase } from './supabase-client.js'
 
   // ─── Main init ───────────────────────────────────────────────────────────────
   async function init() {
-    // Wait for navbar to exist
-    const navbar = await new Promise((resolve) => {
-      const el = document.getElementById('navbar')
+    // Wait for nav-container to exist
+    const container = await new Promise((resolve) => {
+      const el = document.querySelector('.nav-container')
       if (el) { resolve(el); return }
-      document.addEventListener('DOMContentLoaded', () => resolve(document.getElementById('navbar')))
+      document.addEventListener('DOMContentLoaded', () => resolve(document.querySelector('.nav-container')))
     })
-    if (!navbar) return
+    if (!container) return
 
     // ── Step 1: Immediate check — show correct state without waiting for events
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
-      renderUserProfile(navbar, userFromSession(session), session)
+      renderUserProfile(container, userFromSession(session), session)
     } else {
-      renderSignIn(navbar)
+      renderSignIn(container)
     }
 
     // ── Step 2: React to future SIGNED_IN / SIGNED_OUT events only
     supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === 'SIGNED_IN' && newSession) {
-        renderUserProfile(navbar, userFromSession(newSession), newSession)
+        renderUserProfile(container, userFromSession(newSession), newSession)
       } else if (event === 'SIGNED_OUT') {
-        renderSignIn(navbar)
+        renderSignIn(container)
       }
       // Ignore: INITIAL_SESSION, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY
     })
