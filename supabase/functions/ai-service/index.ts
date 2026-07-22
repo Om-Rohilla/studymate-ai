@@ -202,26 +202,154 @@ Keep responses concise (max 3–4 paragraphs). Format clearly with **bold** for 
 }
 
 async function handleNotes(body: any): Promise<object> {
-  const { raw_text = '', format = 'bullet' } = body
+  const { raw_text = '', format = 'bullet', depth = 'detailed', pdf_name } = body
 
-  const formatInstructions: Record<string, string> = {
-    bullet:     'Create a structured bullet-point outline with clear H3 section headings and nested bullet points. Use **bold** for key terms.',
-    cornell:    'Create Cornell Notes with three sections: "## Cues" (key questions/terms), "## Notes" (detailed content), and "## Summary" (3-line recap).',
-    cheatsheet: 'Create a concise formula & term cheat sheet. Use tables or bullet lists with Term: Definition format. Include all formulas.',
+  const depthInstructions: Record<string, string> = {
+    standard:      'Provide a clear, concise overview. Aim for 400–600 words of output.',
+    detailed:      'Be thorough and detailed. Include explanations, sub-points, and definitions. Aim for 700–1000 words.',
+    comprehensive: 'Be exhaustive and highly detailed. Include all key concepts, sub-concepts, worked examples, formulas, edge cases, and real-world applications. Aim for 1000–1500+ words.',
   }
 
-  const systemPrompt = `You are StudyMate AI — an expert at creating study materials.
-Generate well-structured study notes from the provided raw text.
-${formatInstructions[format] ?? formatInstructions.bullet}
-Return clean HTML using only: h3, p, ul, li, strong, em, code, table, tr, td, th tags.
-Do NOT include html/body/head tags. Just the content HTML.`
+  const formatPrompts: Record<string, string> = {
+    bullet: `Generate RICH STRUCTURED STUDY NOTES in HTML format.
 
-  const userPrompt = `Create ${format} format study notes from this content:\n\n${raw_text.substring(0, 4000)}`
+Structure requirements:
+- Start with an <h2> tag for the main title (topic name, not "Study Notes")
+- Use <h3> tags for each major section/concept (prefix with emoji like 🔬 📐 💡)
+- Use <h4> tags for sub-sections within a section
+- Use <ul><li> or <ol><li> for bullet points with detailed explanations
+- Use <strong>term:</strong> pattern for key term definitions
+- Use <table><thead><tr><th></th></tr></thead><tbody>...</tbody></table> for comparison data
+- Use <blockquote> for important quotes, principles, or rules to remember
+- Use <code> for formulas, variables, or technical terms
+- Include a ✅ Key Takeaways <h3> section at the end with 3–5 bullet point summary
+
+Each bullet point must be a complete sentence with explanation — NOT just a keyword.
+${depthInstructions[depth] || depthInstructions.detailed}`,
+
+    cornell: `Generate CORNELL-FORMAT STUDY NOTES in HTML.
+
+Structure:
+<h2>[Topic Name]</h2>
+
+<h3>📌 Cue Column — Key Questions & Terms</h3>
+<ul>
+  <li><strong>Q:</strong> [question] → <em>[brief answer hint]</em></li>
+  ...at least 6–8 cues
+</ul>
+
+<h3>📝 Notes Column — Detailed Content</h3>
+[For each cue question, provide a full <h4> + <p> + <ul> explanation block]
+
+<h3>🔑 Key Definitions</h3>
+<table with Term | Definition | Example columns>
+
+<h3>📊 Summary</h3>
+<blockquote>[3–5 sentence summary capturing the most important ideas]</blockquote>
+
+<h3>✅ Review Questions</h3>
+<ol>5 self-test questions to check understanding</ol>
+
+Be thorough. ${depthInstructions[depth] || depthInstructions.detailed}`,
+
+    cheatsheet: `Generate a COMPREHENSIVE FORMULA & TERM CHEAT SHEET in HTML.
+
+Structure:
+<h2>⚡ [Topic] — Quick Reference</h2>
+
+<h3>📐 Key Formulas & Equations</h3>
+<table>
+  <thead><tr><th>Formula</th><th>Meaning</th><th>Variables</th></tr></thead>
+  <tbody>rows for every formula</tbody>
+</table>
+
+<h3>📖 Definitions — Key Terms</h3>
+<table>
+  <thead><tr><th>Term</th><th>Definition</th><th>Example</th></tr></thead>
+  <tbody>rows for all important terms</tbody>
+</table>
+
+<h3>⚠️ Common Mistakes to Avoid</h3>
+<ul>mistake bullets</ul>
+
+<h3>💡 Quick Rules & Tips</h3>
+<ul>shortcut / mnemonic / quick-reference bullets</ul>
+
+<h3>🔗 Connections & Relationships</h3>
+<p>How these concepts link together</p>
+
+Be exhaustive with ALL formulas, terms, and rules. ${depthInstructions[depth] || depthInstructions.detailed}`,
+
+    mindmap: `Generate a CONCEPT BREAKDOWN / MIND-MAP in HTML format.
+
+Structure:
+<h2>🧠 [Topic] — Concept Map</h2>
+<p>[1-sentence overview of the entire topic]</p>
+
+For each CORE CONCEPT (use <h3> with emoji):
+  <h3>🔷 [Core Concept Name]</h3>
+  <p>[What it is, why it matters — 2–3 sentences]</p>
+  
+  <h4>Key Properties / Characteristics</h4>
+  <ul>bullets</ul>
+
+  <h4>How It Works</h4>
+  <p>step-by-step or mechanism explanation</p>
+
+  <h4>Real-World Example</h4>
+  <blockquote>concrete example</blockquote>
+
+  <h4>Common Misconceptions</h4>
+  <ul>what people get wrong</ul>
+
+  <h4>Connects To</h4>
+  <p>links to other concepts in this topic</p>
+
+End with:
+<h3>🗺️ Big Picture Summary</h3>
+<p>[How all concepts weave together]</p>
+
+${depthInstructions[depth] || depthInstructions.detailed}`,
+  }
+
+  const sourceLabel = pdf_name ? `(extracted from: "${pdf_name}")` : ''
+
+  const systemPrompt = `You are StudyMate AI — an expert educational content creator and study notes specialist.
+Your notes are used by students studying for exams. They must be:
+1. ACCURATE and factually correct
+2. COMPREHENSIVE — cover all important aspects of the topic
+3. WELL-STRUCTURED — easy to scan and study
+4. ACTIONABLE — students should be able to use these to answer exam questions
+
+CRITICAL HTML RULES:
+- Return ONLY clean HTML — no markdown, no \`\`\`html, no code fences
+- Only use: h2, h3, h4, p, ul, ol, li, strong, em, code, pre, table, thead, tbody, tr, th, td, blockquote
+- Do NOT include: html, head, body, style, script tags
+- Make the content rich and detailed — never produce sparse or thin notes
+- Every section must have actual educational content, not just a heading`
+
+  const userPrompt = `Create detailed study notes ${sourceLabel} using this format:
+
+${formatPrompts[format] ?? formatPrompts.bullet}
+
+Content to process:
+${raw_text.substring(0, 6000)}`
 
   const outputHtml = await callLLM(systemPrompt, userPrompt)
-  const title = raw_text.substring(0, 50).replace(/\s+/g, ' ').trim() + '...'
-  return { output_html: outputHtml, title }
+
+  // Clean up any accidental markdown code fences
+  const clean = outputHtml
+    .replace(/^```html?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+
+  const title = pdf_name
+    ? pdf_name.replace(/\.pdf$/i, '').replace(/_/g, ' ')
+    : raw_text.substring(0, 55).replace(/\s+/g, ' ').trim() + (raw_text.length > 55 ? '…' : '')
+
+  return { output_html: clean, title }
 }
+
 
 async function handleQuiz(body: any): Promise<object> {
   const { topic = 'General Knowledge', count = 3, difficulty = 'medium' } = body
