@@ -797,6 +797,20 @@
 
     // ── New chat ──────────────────────────────────────────────────────────────
     async function startNewChat() {
+      // Immediately save any unsent messages before clearing state
+      clearTimeout(saveTimer)
+      if (currentUserId && chatHistory.length > 0) {
+        const subject = document.getElementById('subject-select').value
+        const saved = await saveChatSession(
+          currentUserId, chatHistory, subject, selectedPersona, currentSessionId
+        )
+        if (saved) {
+          currentSessionId = saved.id
+          await refreshSidebar()
+        }
+      }
+
+      // Now clear state for the new chat
       currentSessionId = null
       chatHistory = []
       chatMessages.innerHTML = ''
@@ -962,16 +976,13 @@
       currentUserId = session.user.id
       await refreshSidebar()
 
-      // Load most recent session if exists
+      // Load most recent session if it exists (don't check messages — not fetched in list query)
       if (allSessions.length > 0) {
-        const latest = allSessions[0]
-        if (latest.messages && latest.messages.length > 0) {
-          await loadSession(latest.id)
-          return
-        }
+        await loadSession(allSessions[0].id)
+        return
       }
 
-      // No sessions or empty — show welcome
+      // No sessions at all — show welcome
       setWelcome(true)
       chatInput.focus()
     })()
