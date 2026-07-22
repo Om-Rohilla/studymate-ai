@@ -95,8 +95,53 @@ async function callGemini(systemPrompt: string, userPrompt: string): Promise<str
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
 }
 
-// ── Universal LLM call (auto-selects provider) ────────────────────────────────
-async function callLLM(systemPrompt: string, userPrompt: string): Promise<string> {
+// ── Call Gemini Vision API (for image attachments) ───────────────────────────
+async function callGeminiVision(
+  systemPrompt: string,
+  userPrompt: string,
+  imageData: { mime_type: string; data: string }
+): Promise<string> {
+  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is required for image analysis')
+
+  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: systemPrompt + '\n\n' + userPrompt },
+            { inline_data: { mime_type: imageData.mime_type, data: imageData.data } },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature:     0.7,
+        maxOutputTokens: 1500,
+      },
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Gemini Vision API error ${res.status}: ${err}`)
+  }
+
+  const data = await res.json()
+  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
+}
+
+// ── Universal LLM call (auto-selects provider, vision-aware) ──────────────────
+async function callLLM(
+  systemPrompt: string,
+  userPrompt: string,
+  imageData?: { mime_type: string; data: string }
+): Promise<string> {
+  // Images require Gemini Vision regardless of priority setting
+  if (imageData) {
+    return callGeminiVision(systemPrompt, userPrompt, imageData)
+  }
   const provider = getProvider()
   if (!provider) {
     throw new Error('No API key configured. Add GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.')
@@ -109,7 +154,14 @@ async function callLLM(systemPrompt: string, userPrompt: string): Promise<string
 // ── Action handlers ───────────────────────────────────────────────────────────
 
 async function handleChat(body: any): Promise<object> {
-  const { messages = [], persona = 'socratic', subject = 'General' } = body
+  const {
+    messages   = [],
+    persona    = 'socratic',
+    subject    = 'General',
+    image_data,   // { mime_type, data } — base64 image for Gemini Vision
+    pdf_text,     // extracted PDF text as string
+    pdf_name,     // original PDF filename
+  } = body
 
   const personaInstructions: Record<string, string> = {
     socratic: 'You are a Socratic Coach. Guide the student with probing questions rather than direct answers. Encourage critical thinking.',
@@ -130,11 +182,22 @@ Keep responses concise (max 3–4 paragraphs). Format clearly with **bold** for 
     .join('\n')
 
   const lastUserMsg = messages.filter((m: any) => m.sender === 'user').pop()?.text ?? ''
-  const userPrompt  = conversationText
+  let userPrompt    = conversationText
     ? `Conversation so far:\n${conversationText}\n\nStudent's latest question: ${lastUserMsg}`
     : `Student asks: ${lastUserMsg}`
 
-  const reply = await callLLM(systemPrompt, userPrompt)
+  // Inject PDF text as context
+  if (pdf_text) {
+    userPrompt += `\n\n--- UPLOADED DOCUMENT: "${pdf_name ?? 'document.pdf'}" ---\n${pdf_text.substring(0, 6000)}\n--- END DOCUMENT ---\n\nPlease answer the student's question in relation to the above document.`
+  }
+
+  // If image_data present → use Gemini Vision
+  const imageDataPayload = image_data?.data ? image_data : undefined
+  if (imageDataPayload) {
+    userPrompt += '\n\nThe student has also attached an image. Please analyse the image and answer their question in relation to it.'
+  }
+
+  const reply = await callLLM(systemPrompt, userPrompt, imageDataPayload)
   return { reply }
 }
 
