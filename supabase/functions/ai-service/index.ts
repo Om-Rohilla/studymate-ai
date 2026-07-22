@@ -391,26 +391,34 @@ Rules:
 }
 
 async function handleFlashcards(body: any): Promise<object> {
-  const { topic = 'General Knowledge', count = 8 } = body
+  const { topic = 'General Knowledge', count = 10, difficulty = 'intermediate' } = body
 
-  const systemPrompt = `You are StudyMate AI — an expert flashcard creator.
-Generate exactly ${count} study flashcards about "${topic}".
+  const difficultyMap: Record<string, string> = {
+    beginner:     'Focus on basic definitions, key terms, and foundational concepts. Questions should be straightforward.',
+    intermediate: 'Mix definitions, conceptual questions, applications, and "how/why" questions. Moderate challenge.',
+    advanced:     'Focus on deep understanding, edge cases, comparisons, mechanisms, and application in complex scenarios.',
+  }
 
-Return ONLY a valid JSON array with this exact structure (no markdown, no explanation):
+  const systemPrompt = `You are StudyMate AI — an expert flashcard creator for serious students.
+Generate exactly ${count} high-quality study flashcards about "${topic}".
+Difficulty: ${difficultyMap[difficulty] ?? difficultyMap.intermediate}
+
+Return ONLY a valid JSON array with this exact structure (no markdown, no code blocks, no explanation):
 [
   {
-    "front": "Question or term on the front of the card",
-    "back": "Answer or definition on the back of the card"
+    "front": "Clear question, term, or prompt",
+    "back": "Accurate, complete answer — 1 to 4 sentences. Include key details, not just a one-word answer."
   }
 ]
 
 Rules:
-- Front should be a clear question or term
-- Back should be a concise, accurate answer (1–3 sentences max)
-- Cover different aspects of the topic
-- Return ONLY the JSON array, nothing else`
+- Front: Use varied question types — definitions ("What is…?"), mechanisms ("How does…?"), comparisons ("What is the difference between…?"), applications ("When would you use…?"), fill-in-the-blank, true/false explanations
+- Back: Substantive answer — at minimum 1 full sentence. Include the core fact PLUS why it matters or a brief example
+- Cover diverse aspects of the topic — don't repeat similar questions
+- Difficulty must match: ${difficulty}
+- Return ONLY the JSON array — no other text`
 
-  const userPrompt = `Generate ${count} flashcards about: ${topic}`
+  const userPrompt = `Generate ${count} ${difficulty} flashcards about: ${topic}`
 
   const raw = await callLLM(systemPrompt, userPrompt)
 
@@ -420,6 +428,7 @@ Rules:
   const cards = JSON.parse(jsonMatch[0])
   return { cards }
 }
+
 
 async function handlePlan(body: any): Promise<object> {
   const { subject = 'Exam', days = 7, hours_day = 2 } = body
