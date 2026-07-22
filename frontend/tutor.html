@@ -804,10 +804,9 @@
         const saved = await saveChatSession(
           currentUserId, chatHistory, subject, selectedPersona, currentSessionId
         )
-        if (saved) {
-          currentSessionId = saved.id
-          await refreshSidebar()
-        }
+        if (saved) currentSessionId = saved.id
+        // Always refresh sidebar whether save succeeded or not
+        await refreshSidebar()
       }
 
       // Now clear state for the new chat
