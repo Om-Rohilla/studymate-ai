@@ -96,23 +96,25 @@
 
     .hero-cta {
       display: inline-block;
-      padding: 1rem 2.25rem;
+      padding: 0.95rem 2.5rem;
       border-radius: 14px;
-      border: 2px solid rgba(255,255,255,0.10);
-      background: transparent;
-      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      background: #ffffff;
+      color: #0b0c10;
       font-family: var(--font-body);
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 1.05rem;
+      font-weight: 700;
       text-decoration: none;
-      transition: var(--transition);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3), 0 0 35px rgba(120, 119, 198, 0.3);
     }
 
     .hero-cta:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.25);
-      transform: translateY(-2px);
+      background: #f0f0f5;
+      color: #000000;
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 28px rgba(255, 255, 255, 0.45), 0 0 45px rgba(147, 112, 219, 0.45);
     }
 
     .features-section {
@@ -391,7 +393,7 @@
         <div class="hero-brand grow-item grow-delay-1">STUDYMATE AI</div>
         <h1 class="hero-title grow-item grow-delay-2">Master Any Course.<br>Speed Up Study.</h1>
         <p class="hero-subtitle grow-item grow-delay-3">Upload your lecture notes, slides, or textbooks. Generate active recall quizzes, structured notes, and personalized study schedules in seconds.</p>
-        <a href="login.html" class="hero-cta grow-item grow-delay-4">Get Started Free →</a>
+        <a href="login.html" class="hero-cta grow-item grow-delay-4">Get Started →</a>
       </div>
     </main>
 
