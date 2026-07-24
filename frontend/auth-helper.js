@@ -451,11 +451,13 @@ import { supabase } from './supabase-client.js'
 
     // ── About modal ────────────────────────────────────────────────────────
     const aboutModal = wrap.querySelector('#ah-about-modal')
+    // Move modal to body so it properly overlays the full screen
+    document.body.appendChild(aboutModal)
     wrap.querySelector('#ah-about-btn').addEventListener('click', () => {
       closeMenu()
       aboutModal.style.display = 'flex'
     })
-    wrap.querySelector('#ah-about-close').addEventListener('click', () => {
+    aboutModal.querySelector('#ah-about-close').addEventListener('click', () => {
       aboutModal.style.display = 'none'
     })
     aboutModal.addEventListener('click', (e) => {
@@ -464,28 +466,30 @@ import { supabase } from './supabase-client.js'
 
     // ── Contact modal ──────────────────────────────────────────────────────
     const contactModal = wrap.querySelector('#ah-contact-modal')
+    // Move modal to body so it properly overlays the full screen
+    document.body.appendChild(contactModal)
     wrap.querySelector('#ah-contact-btn').addEventListener('click', () => {
       closeMenu()
       contactModal.style.display = 'flex'
     })
-    wrap.querySelector('#ah-contact-close').addEventListener('click', () => {
+    contactModal.querySelector('#ah-contact-close').addEventListener('click', () => {
       contactModal.style.display = 'none'
     })
     contactModal.addEventListener('click', (e) => {
       if (e.target === contactModal) contactModal.style.display = 'none'
     })
-    wrap.querySelector('#ah-contact-submit').addEventListener('click', () => {
-      const name = wrap.querySelector('#ah-contact-name').value.trim()
-      const email = wrap.querySelector('#ah-contact-email').value.trim()
-      const msg = wrap.querySelector('#ah-contact-msg').value.trim()
+    contactModal.querySelector('#ah-contact-submit').addEventListener('click', () => {
+      const name = contactModal.querySelector('#ah-contact-name').value.trim()
+      const email = contactModal.querySelector('#ah-contact-email').value.trim()
+      const msg = contactModal.querySelector('#ah-contact-msg').value.trim()
       if (!name || !email || !msg) { showToast('Please fill in all fields.', 'error'); return }
       // Simple email validation
       if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { showToast('Please enter a valid email.', 'error'); return }
       showToast('Message sent! We\'ll get back to you soon.', 'success')
       contactModal.style.display = 'none'
-      wrap.querySelector('#ah-contact-name').value = ''
-      wrap.querySelector('#ah-contact-email').value = ''
-      wrap.querySelector('#ah-contact-msg').value = ''
+      contactModal.querySelector('#ah-contact-name').value = ''
+      contactModal.querySelector('#ah-contact-email').value = ''
+      contactModal.querySelector('#ah-contact-msg').value = ''
     })
 
     // ── Sync ───────────────────────────────────────────────────────────────

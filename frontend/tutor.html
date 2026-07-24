@@ -250,15 +250,15 @@
       flex-shrink: 0;
     }
     .persona-strip::-webkit-scrollbar { display: none; }
-    .persona-strip-label { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); white-space: nowrap; margin-right: 0.2rem; }
+    .persona-strip-label { font-size: 0.82rem; font-weight: 800; white-space: nowrap; margin-right: 0.4rem; background: linear-gradient(135deg, #6c63ff, #4f9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 0.04em; text-transform: uppercase; }
 
     .persona-pill {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      padding: 0.28rem 0.7rem;
+      gap: 0.45rem;
+      padding: 0.45rem 1rem;
       border-radius: var(--radius-full);
-      font-size: 0.72rem;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       transition: var(--transition);
@@ -746,6 +746,7 @@
 
           <!-- Big centered textarea (mirrors the bottom input when chat has messages) -->
           <div class="welcome-input-wrap" id="welcome-input-wrap">
+            <div class="attach-preview" id="welcome-attach-preview"></div>
             <textarea
               id="welcome-textarea"
               class="welcome-textarea"
@@ -754,9 +755,15 @@
             ></textarea>
             <div class="welcome-input-row">
               <span class="welcome-input-hint">Enter to send · Shift+Enter for newline</span>
-              <button class="welcome-send-btn" id="welcome-send-btn" aria-label="Send">
-                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-              </button>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <input type="file" id="attach-input" accept="image/*,.pdf" style="display:none">
+                <button class="attach-btn" id="attach-btn" type="button" title="Attach image or PDF">
+                  <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
+                </button>
+                <button class="welcome-send-btn" id="welcome-send-btn" aria-label="Send">
+                  <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -780,7 +787,7 @@
       </div>
 
       <!-- Input area -->
-      <div class="chat-input-area">
+      <div class="chat-input-area" id="chat-input-area" style="display:none">
         <!-- Attachment preview chips -->
         <div class="attach-preview" id="attach-preview"></div>
 
@@ -791,9 +798,7 @@
             placeholder="Ask anything — or attach an image / PDF…"
             rows="1"
           ></textarea>
-          <!-- Hidden file input -->
-          <input type="file" id="attach-input" accept="image/*,.pdf" style="display:none">
-          <button class="attach-btn" id="attach-btn" type="button" title="Attach image or PDF">
+          <button class="attach-btn" id="chat-attach-btn" type="button" title="Attach image or PDF">
             <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
           </button>
           <button class="send-btn" id="send-btn" aria-label="Send">
@@ -828,6 +833,7 @@
     const historySearch   = document.getElementById('history-search')
     const newChatBtn      = document.getElementById('new-chat-btn')
     const welcomeState    = document.getElementById('welcome-state')
+    const chatInputArea   = document.getElementById('chat-input-area')
     const attachBtn       = document.getElementById('attach-btn')
     const attachInput     = document.getElementById('attach-input')
     const attachPreview   = document.getElementById('attach-preview')
@@ -889,43 +895,50 @@
 
     /** Render the attachment preview chip */
     function renderAttachPreview() {
-      if (!pendingAttachment) {
-        attachPreview.style.display = 'none'
-        attachPreview.innerHTML = ''
-        return
-      }
-      attachPreview.style.display = 'flex'
-      if (pendingAttachment.type === 'image') {
-        attachPreview.innerHTML = `
-          <div class="attach-chip">
-            <img src="${pendingAttachment.previewUrl}" alt="preview">
-            <span class="attach-chip-name">${escHtml(pendingAttachment.name)}</span>
-            <button class="attach-chip-remove" id="attach-remove" title="Remove">✕</button>
-          </div>`
-      } else {
-        attachPreview.innerHTML = `
-          <div class="attach-chip">
-            <div class="attach-chip-icon">📄</div>
-            <span class="attach-chip-name">${escHtml(pendingAttachment.name)} (${pendingAttachment.pages}p)</span>
-            <button class="attach-chip-remove" id="attach-remove" title="Remove">✕</button>
-          </div>`
-      }
-      document.getElementById('attach-remove').addEventListener('click', () => {
-        pendingAttachment = null
-        attachInput.value = ''
-        renderAttachPreview()
+      const previews = [document.getElementById('attach-preview'), document.getElementById('welcome-attach-preview')].filter(Boolean)
+
+      previews.forEach(preview => {
+        if (!pendingAttachment) {
+          preview.style.display = 'none'
+          preview.innerHTML = ''
+          return
+        }
+        preview.style.display = 'flex'
+        if (pendingAttachment.type === 'image') {
+          preview.innerHTML = `
+            <div class="attach-chip">
+              <img src="${pendingAttachment.previewUrl}" alt="preview">
+              <span class="attach-chip-name">${escHtml(pendingAttachment.name)}</span>
+              <button class="attach-chip-remove" title="Remove">✕</button>
+            </div>`
+        } else {
+          preview.innerHTML = `
+            <div class="attach-chip">
+              <div class="attach-chip-icon">📄</div>
+              <span class="attach-chip-name">${escHtml(pendingAttachment.name)} (${pendingAttachment.pages}p)</span>
+              <button class="attach-chip-remove" title="Remove">✕</button>
+            </div>`
+        }
+        preview.querySelectorAll('.attach-chip-remove').forEach(btn => {
+          btn.addEventListener('click', () => {
+            pendingAttachment = null
+            attachInput.value = ''
+            renderAttachPreview()
+          })
+        })
       })
     }
 
     // ── Attach button click ───────────────────────────────────────────────────
-    attachBtn.addEventListener('click', () => attachInput.click())
+    document.querySelectorAll('.attach-btn').forEach(btn => {
+      btn.addEventListener('click', () => attachInput.click())
+    })
 
     attachInput.addEventListener('change', async () => {
       const file = attachInput.files[0]
       if (!file) return
       try {
-        attachBtn.disabled = true
-        attachBtn.style.opacity = '0.5'
+        document.querySelectorAll('.attach-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.5' })
         if (file.type.startsWith('image/')) {
           pendingAttachment = await processImage(file)
         } else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
@@ -939,8 +952,7 @@
         console.error('[Attach] Error processing file:', err)
         alert('Could not process the file. Please try a different file.')
       } finally {
-        attachBtn.disabled = false
-        attachBtn.style.opacity = '1'
+        document.querySelectorAll('.attach-btn').forEach(b => { b.disabled = false; b.style.opacity = '1' })
         attachInput.value = ''
       }
     })
@@ -1010,8 +1022,10 @@
     function setWelcome(show) {
       if (show) {
         welcomeState.style.display = 'flex'
+        if (chatInputArea) chatInputArea.style.display = 'none'
       } else {
         welcomeState.style.display = 'none'
+        if (chatInputArea) chatInputArea.style.display = 'block'
       }
     }
 
