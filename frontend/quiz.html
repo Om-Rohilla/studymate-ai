@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="design-system.css">
 
   <style>
+    /* Wave canvas */
+    #quiz-wave-canvas {
+      position: fixed; bottom: 0; left: 0;
+      width: 100vw; height: 45vh;
+      z-index: 0; pointer-events: none;
+    }
+
     main {
       max-width: 900px;
       margin: 0 auto;
@@ -16,13 +23,13 @@
     }
 
     .quiz-config-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      background: rgba(12, 15, 24, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
       padding: 1.75rem;
       margin-bottom: 2rem;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
     .form-grid {
@@ -41,13 +48,13 @@
     .form-label {
       font-size: 0.75rem;
       font-weight: 600;
-      color: var(--text-muted);
+      color: rgba(255,255,255,0.45);
     }
 
     .select-input, .text-input {
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
       padding: 0.55rem 0.75rem;
       color: var(--text-main);
       font-family: var(--font-body);
@@ -57,19 +64,20 @@
 
     .select-input:focus, .text-input:focus {
       outline: none;
-      border-color: var(--border-hover);
-      background: var(--bg-input-focus);
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
     }
+    .text-input::placeholder { color: rgba(255,255,255,0.2); }
 
     .question-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      background: rgba(12, 15, 24, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
       padding: 1.75rem;
       margin-bottom: 1.25rem;
       display: none;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
     .question-card.active { display: block; }
@@ -79,7 +87,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--text-muted);
+      color: rgba(255,255,255,0.35);
       margin-bottom: 0.35rem;
     }
 
@@ -97,9 +105,9 @@
     }
 
     .option-btn {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
       padding: 0.75rem 1rem;
       color: var(--text-main);
       text-align: left;
@@ -113,8 +121,8 @@
     }
 
     .option-btn:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: var(--border-hover);
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(255,255,255,0.15);
     }
 
     .option-btn.selected { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; }
@@ -134,14 +142,14 @@
     }
 
     .quiz-score-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
+      background: rgba(12, 15, 24, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
       padding: 2.5rem 1.5rem;
       text-align: center;
       display: none;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
     .score-num {
@@ -151,17 +159,98 @@
       color: #ffffff;
     }
 
+    /* File upload button */
+    .file-upload-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-file {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 300;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-file:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+    }
+
+    .file-name-tag {
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 0.3rem 0.65rem;
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-name-tag.visible { display: inline-flex; }
+
+    .file-name-tag .remove-file {
+      cursor: pointer;
+      opacity: 0.5;
+      font-size: 0.9rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .file-name-tag .remove-file:hover { opacity: 1; }
+
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
+    }
+
+    #start-quiz-btn {
+      background: linear-gradient(135deg, #6c63ff 0%, #4f9fff 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 1.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(108, 99, 255, 0.55), 0 4px 14px rgba(0,0,0,0.35);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+    #start-quiz-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 28px rgba(108, 99, 255, 0.75), 0 6px 20px rgba(0,0,0,0.4);
+      filter: brightness(1.1);
+    }
+    #start-quiz-btn:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: 0 0 14px rgba(108, 99, 255, 0.5);
     }
   </style>
 </head>
 <body>
 
+  <canvas id="quiz-wave-canvas"></canvas>
   <div class="bg-grain"></div>
-  <div class="bg-grid"></div>
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
 
   <header>
     <div class="nav-container">
@@ -187,7 +276,7 @@
 
   <main>
     <div class="quiz-config-card">
-      <h2 style="font-size: 1.35rem; color:#ffffff;">Generate Practice Quiz</h2>
+      <h2 style="font-size: 1.35rem; color:#ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">Generate Practice Quiz</h2>
       <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.2rem;">Test your recall with AI-generated multiple choice questions.</p>
 
       <div class="form-grid">
@@ -214,9 +303,25 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" id="start-quiz-btn" style="margin-top:1.25rem;">
-        <span>Start Quiz</span>
-      </button>
+      <input type="file" id="quiz-file-input" accept=".pdf,.txt,.doc,.docx" style="display:none;">
+
+      <div class="file-upload-area">
+        <button class="btn btn-primary" id="start-quiz-btn">
+          <span>Start Quiz</span>
+        </button>
+
+        <button class="btn-file" id="add-file-btn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+          </svg>
+          Add a File
+        </button>
+
+        <span class="file-name-tag" id="file-name-tag">
+          <span id="file-name-text"></span>
+          <span class="remove-file" id="remove-file" title="Remove file">&times;</span>
+        </span>
+      </div>
     </div>
 
     <div class="question-card" id="question-card">
@@ -258,6 +363,30 @@
     const restartBtn  = document.getElementById('restart-quiz-btn');
     const finalScore  = document.getElementById('final-score');
     const scoreText   = document.getElementById('score-text');
+
+    // ── File upload wiring ──────────────────────────────────────────────────────
+    const fileInput   = document.getElementById('quiz-file-input');
+    const addFileBtn  = document.getElementById('add-file-btn');
+    const fileNameTag = document.getElementById('file-name-tag');
+    const fileNameTxt = document.getElementById('file-name-text');
+    const removeFile  = document.getElementById('remove-file');
+
+    addFileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) {
+        fileNameTxt.textContent = file.name;
+        fileNameTag.classList.add('visible');
+        if (!topicInput.value.trim()) topicInput.value = file.name.replace(/\.[^/.]+$/, '');
+      }
+    });
+
+    removeFile.addEventListener('click', () => {
+      fileInput.value = '';
+      fileNameTag.classList.remove('visible');
+      fileNameTxt.textContent = '';
+    });
 
     let currentQuestions = [], currentIndex = 0, correctCount = 0;
     let currentUserId = null;
@@ -381,5 +510,47 @@
   </script>
   <script type="module" src="auth-guard.js"></script>
   <script type="module" src="auth-helper.js"></script>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('quiz-wave-canvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+      const VERT = `precision mediump float; attribute vec2 a_position; varying vec2 vUv; void main() { vUv = 0.5*(a_position+1.0); gl_Position = vec4(a_position,0.0,1.0); }`;
+      const FRAG = `
+        precision mediump float; varying vec2 vUv; uniform float u_time;
+        float wave(vec2 uv,float freq,float speed,float amp){return sin(uv.x*freq+u_time*speed)*amp;}
+        void main(){
+          float w1=wave(vUv,6.0,1.2,0.06); float w2=wave(vUv,9.5,-0.9,0.04);
+          float w3=wave(vUv,14.0,1.8,0.025); float w4=wave(vUv,20.0,-2.1,0.015);
+          float wl=vUv.y+w1+w2+w3+w4;
+          float fadeIn=smoothstep(0.0,0.25,vUv.y); float fadeOut=1.0-smoothstep(0.7,1.0,vUv.y);
+          float mask=fadeIn*fadeOut;
+          float b1=exp(-abs(wl-0.38)*28.0); float b2=exp(-abs(wl-0.42)*40.0); float b3=exp(-abs(wl-0.35)*18.0)*0.5;
+          vec3 col=vec3(0.0,0.01,0.06);
+          col+=vec3(0.05,0.15,1.0)*b1*mask*1.4; col+=vec3(0.0,0.5,1.0)*b2*mask*1.1; col+=vec3(0.3,0.8,1.0)*b3*mask*0.8;
+          float vg=smoothstep(0.0,0.45,vUv.y)*(1.0-smoothstep(0.55,1.0,vUv.y));
+          col+=vec3(0.0,0.02,0.15)*vg;
+          float alpha=clamp((b1+b2*0.7+b3)*mask*2.5+vg*0.15,0.0,1.0);
+          gl_FragColor=vec4(col,alpha);
+        }
+      `;
+      function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+      const p=gl.createProgram();
+      gl.attachShader(p,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FRAG));
+      gl.linkProgram(p); gl.useProgram(p);
+      const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      const l=gl.getAttribLocation(p,'a_position');
+      gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      const uT=gl.getUniformLocation(p,'u_time');
+      function resize(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=window.innerWidth*dpr;canvas.height=canvas.offsetHeight*dpr;gl.viewport(0,0,canvas.width,canvas.height);}
+      window.addEventListener('resize',resize); resize();
+      const t0=performance.now();
+      (function r(){gl.uniform1f(uT,(performance.now()-t0)*0.001);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(r);})();
+    })();
+  </script>
 </body>
 </html>

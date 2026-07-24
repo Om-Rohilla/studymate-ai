@@ -13,6 +13,13 @@
   <style>
     body { overflow: hidden; }
 
+    /* Wave canvas */
+    #notes-wave-canvas {
+      position: fixed; bottom: 0; left: 0;
+      width: 100vw; height: 45vh;
+      z-index: 0; pointer-events: none;
+    }
+
     .notes-shell {
       display: grid;
       grid-template-columns: 300px 1fr;
@@ -23,27 +30,27 @@
 
     /* ── Left Panel ── */
     .notes-panel {
-      background: rgba(10, 13, 20, 0.6);
-      border-right: 1px solid var(--border-subtle);
+      background: rgba(6, 8, 14, 0.75);
+      border-right: 1px solid rgba(255,255,255,0.06);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
 
     .panel-header {
       padding: 1.1rem 1.1rem 0.75rem;
-      border-bottom: 1px solid var(--border-subtle);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .panel-title {
-      font-size: 0.92rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #ffffff;
       margin-bottom: 0.2rem;
     }
     .panel-sub {
-      font-size: 0.72rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
       line-height: 1.4;
     }
@@ -68,9 +75,9 @@
     }
 
     .notes-textarea {
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
       padding: 0.65rem 0.75rem;
       color: var(--text-main);
       font-family: var(--font-body);
@@ -84,9 +91,9 @@
     }
     .notes-textarea:focus {
       outline: none;
-      border-color: var(--border-hover);
+      border-color: rgba(255,255,255,0.18);
     }
-    .notes-textarea::placeholder { color: var(--text-dim); }
+    .notes-textarea::placeholder { color: rgba(255,255,255,0.2); }
 
     .format-grid {
       display: flex;
@@ -98,12 +105,12 @@
       align-items: flex-start;
       gap: 0.55rem;
       padding: 0.55rem 0.65rem;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
       cursor: pointer;
       transition: var(--transition);
     }
-    .format-opt:hover { background: rgba(255,255,255,0.04); border-color: var(--border-hover); }
+    .format-opt:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); }
     .format-opt.selected { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.25); }
     .format-opt input { display: none; }
     .format-emoji { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
@@ -115,14 +122,14 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.55rem 0.75rem;
-      border: 1px dashed var(--border-subtle);
-      border-radius: var(--radius-md);
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: 10px;
       cursor: pointer;
       transition: var(--transition);
       font-size: 0.75rem;
       color: var(--text-muted);
     }
-    .pdf-attach:hover { border-color: var(--border-hover); color: #ffffff; background: rgba(255,255,255,0.03); }
+    .pdf-attach:hover { border-color: rgba(255,255,255,0.25); color: #ffffff; background: rgba(255,255,255,0.03); }
     .pdf-attach svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
     .pdf-chip {
       display: flex;
@@ -162,7 +169,7 @@
 
     /* ── Saved list ── */
     .saved-section {
-      border-top: 1px solid var(--border-subtle);
+      border-top: 1px solid rgba(255,255,255,0.05);
       padding: 0.75rem 0.9rem;
     }
     .saved-label {
@@ -215,9 +222,10 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(10, 13, 20, 0.5);
-      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(6, 8, 14, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       gap: 0.75rem;
       flex-shrink: 0;
     }
@@ -248,9 +256,9 @@
       align-items: center;
       gap: 0.3rem;
       padding: 0.35rem 0.7rem;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
       color: var(--text-muted);
       font-family: var(--font-body);
       font-size: 0.72rem;
@@ -259,7 +267,7 @@
       transition: var(--transition);
       white-space: nowrap;
     }
-    .tool-btn:hover { background: rgba(255,255,255,0.1); color: #ffffff; border-color: var(--border-hover); }
+    .tool-btn:hover { background: rgba(255,255,255,0.09); color: #ffffff; border-color: rgba(255,255,255,0.15); }
     .tool-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
 
     /* Notes content area */
@@ -285,7 +293,7 @@
       letter-spacing: -0.02em;
       margin: 0 0 0.4rem;
       padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border-subtle);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
     }
 
     .notes-content h3 {
@@ -384,27 +392,26 @@
       font-style: italic;
     }
 
-    /* Welcome / empty state */
+    /* Welcome / empty state — Bolt.new style */
     .welcome-state {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100%;
-      gap: 1.25rem;
+      gap: 1.1rem;
       padding: 3rem 2rem;
       text-align: center;
     }
-    .welcome-icon {
-      width: 56px; height: 56px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
+    .welcome-title {
+      font-family: var(--font-heading);
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
     }
-    .welcome-icon svg { width: 26px; height: 26px; stroke: rgba(255,255,255,0.4); fill: none; stroke-width: 1.5; }
-    .welcome-title { font-size: 1.15rem; font-weight: 700; color: #ffffff; }
-    .welcome-sub { font-size: 0.8rem; color: var(--text-muted); max-width: 380px; line-height: 1.6; }
+    .welcome-sub { font-size: 0.85rem; color: rgba(255,255,255,0.4); max-width: 420px; line-height: 1.6; }
 
     /* Loading state */
     .loading-state {
@@ -433,10 +440,8 @@
 </head>
 <body>
 
+  <canvas id="notes-wave-canvas"></canvas>
   <div class="bg-grain"></div>
-  <div class="bg-grid"></div>
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
 
   <header>
     <div class="nav-container">
@@ -579,10 +584,7 @@
       <div class="notes-scroll" id="notes-scroll">
         <!-- Welcome state -->
         <div class="welcome-state" id="welcome-state">
-          <div class="welcome-icon">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-          </div>
-          <div class="welcome-title">Your Notes Appear Here</div>
+          <div class="welcome-title">Your Notes Appear Here.</div>
           <div class="welcome-sub">Paste any text or upload a PDF on the left, choose your format and depth, then click Generate Notes. Download as PDF or Word when done.</div>
         </div>
 
@@ -914,5 +916,48 @@
   </script>
   <script type="module" src="auth-guard.js"></script>
   <script type="module" src="auth-helper.js"></script>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('notes-wave-canvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+      const VERT = `precision mediump float; attribute vec2 a_position; varying vec2 vUv; void main() { vUv = 0.5*(a_position+1.0); gl_Position = vec4(a_position,0.0,1.0); }`;
+      const FRAG = `
+        precision mediump float; varying vec2 vUv; uniform float u_time;
+        float wave(vec2 uv,float freq,float speed,float amp){return sin(uv.x*freq+u_time*speed)*amp;}
+        void main(){
+          float w1=wave(vUv,6.0,1.2,0.06); float w2=wave(vUv,9.5,-0.9,0.04);
+          float w3=wave(vUv,14.0,1.8,0.025); float w4=wave(vUv,20.0,-2.1,0.015);
+          float wl=vUv.y+w1+w2+w3+w4;
+          float fadeIn=smoothstep(0.0,0.25,vUv.y); float fadeOut=1.0-smoothstep(0.7,1.0,vUv.y);
+          float mask=fadeIn*fadeOut;
+          float b1=exp(-abs(wl-0.38)*28.0); float b2=exp(-abs(wl-0.42)*40.0); float b3=exp(-abs(wl-0.35)*18.0)*0.5;
+          float glow=(b1+b2*0.7+b3)*mask;
+          vec3 col=vec3(0.0,0.01,0.06);
+          col+=vec3(0.05,0.15,1.0)*b1*mask*1.4; col+=vec3(0.0,0.5,1.0)*b2*mask*1.1; col+=vec3(0.3,0.8,1.0)*b3*mask*0.8;
+          float vg=smoothstep(0.0,0.45,vUv.y)*(1.0-smoothstep(0.55,1.0,vUv.y));
+          col+=vec3(0.0,0.02,0.15)*vg;
+          float alpha=clamp(glow*2.5+vg*0.15,0.0,1.0);
+          gl_FragColor=vec4(col,alpha);
+        }
+      `;
+      function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
+      const prog=gl.createProgram();
+      gl.attachShader(prog,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FRAG));
+      gl.linkProgram(prog); gl.useProgram(prog);
+      const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      const loc=gl.getAttribLocation(prog,'a_position');
+      gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      const uT=gl.getUniformLocation(prog,'u_time');
+      function resize(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=window.innerWidth*dpr;canvas.height=canvas.offsetHeight*dpr;gl.viewport(0,0,canvas.width,canvas.height);}
+      window.addEventListener('resize',resize); resize();
+      const t0=performance.now();
+      (function r(){gl.uniform1f(uT,(performance.now()-t0)*0.001);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(r);})();
+    })();
+  </script>
 </body>
 </html>
