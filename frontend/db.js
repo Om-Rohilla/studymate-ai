@@ -139,7 +139,7 @@ export async function saveChatSession(userId, messages, subject = 'General', per
 export async function loadAllChatSessions(userId) {
   const { data, error } = await supabase
     .from('chat_sessions')
-    .select('id, title, subject, persona, message_count, updated_at')
+    .select('id, title, subject, persona, updated_at')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(40)
@@ -209,7 +209,7 @@ export async function saveNote(userId, { title, rawInput, outputHtml, format, de
 export async function loadNotes(userId) {
   const { data, error } = await supabase
     .from('notes')
-    .select('id, title, format, depth, word_count, created_at')
+    .select('id, title, format, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(30)
@@ -298,7 +298,7 @@ export async function saveFlashcardDeck(userId, { name, cards, topic, difficulty
 export async function loadFlashcardDecks(userId) {
   const { data, error } = await supabase
     .from('flashcard_decks')
-    .select('id, name, topic, difficulty, card_count, updated_at')
+    .select('id, name, topic, difficulty, updated_at')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(20)
