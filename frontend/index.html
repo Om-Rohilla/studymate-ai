@@ -558,7 +558,7 @@
   </script>
   <script type="module">
     import { supabase } from './supabase-client.js'
-    import { loadAllChatSessions, loadNotes, loadDashboardStats } from './db.js'
+    import { loadAllChatSessions, loadNotes, loadDashboardStats, updateStudyStreak } from './db.js'
 
     function relativeTime(dateStr) {
       const diff = Date.now() - new Date(dateStr).getTime()

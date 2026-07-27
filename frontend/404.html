@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Page Not Found</title>
+  <meta name="description" content="The page you're looking for doesn't exist.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="design-system.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .error-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .error-code {
+      font-family: var(--font-heading);
+      font-size: clamp(5rem, 18vw, 9rem);
+      font-weight: 800;
+      letter-spacing: -0.06em;
+      background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.35) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .error-title {
+      font-family: var(--font-heading);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.75rem;
+    }
+
+    .error-sub {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.45);
+      max-width: 380px;
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    .error-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-home {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 1.8rem;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.22s ease;
+      cursor: pointer;
+    }
+
+    .btn-home:hover {
+      background: #e4e4e7;
+      transform: translateY(-2px);
+    }
+
+    .btn-back {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 0.75rem 1.8rem;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.22s ease;
+      cursor: pointer;
+    }
+
+    .btn-back:hover {
+      background: rgba(255,255,255,0.1);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    .error-emoji {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      animation: spin-slow 8s linear infinite;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Quick links */
+    .quick-links {
+      margin-top: 3.5rem;
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .quick-link {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9999px;
+      padding: 0.38rem 0.9rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+
+    .quick-link:hover {
+      background: rgba(255,255,255,0.08);
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grain"></div>
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-badge">AI</div>
+        StudyMate
+      </a>
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="error-wrap">
+    <div class="error-emoji">🔭</div>
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-sub">
+      Looks like this page wandered off to study somewhere else. 
+      Let's get you back on track.
+    </p>
+
+    <div class="error-actions">
+      <a href="index.html" class="btn-home">Go Home</a>
+      <button class="btn-back" onclick="history.back()">← Go Back</button>
+    </div>
+
+    <div class="quick-links">
+      <a href="tutor.html" class="quick-link">🧠 AI Tutor</a>
+      <a href="notes.html" class="quick-link">📝 Notes</a>
+      <a href="quiz.html" class="quick-link">📊 Quiz</a>
+      <a href="flashcards.html" class="quick-link">🃏 Flashcards</a>
+      <a href="planner.html" class="quick-link">📅 Planner</a>
+    </div>
+  </div>
+
+  <script type="module" src="auth-helper.js"></script>
+</body>
+</html>

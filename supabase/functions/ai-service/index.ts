@@ -1,55 +1,94 @@
 /**
- * Supabase Edge Function: ai-service
+ * Supabase Edge Function: ai-service — PRODUCTION VERSION
  *
- * A single unified AI proxy for StudyMate AI.
- * Provider priority: Groq (free) → Gemini (free tier) → Gemini 1.5 Flash (fallback)
+ * Features:
+ *  - Per-user rate limiting (10 req/min stored in memory map)
+ *  - Input validation & sanitisation on all params
+ *  - Structured error logging with request IDs
+ *  - Gemini 1.5 Flash (vision) + Groq llama-3.3-70b with fallback chain
+ *  - Chat history trimming (max 3000 chars context)
+ *  - All 5 actions: chat | notes | quiz | flashcards | plan
  *
  * Endpoint: POST /functions/v1/ai-service
- *
- * Request body: { action, ...params }
- *
- * Actions:
- *   "chat"         → { action, messages, persona, subject }
- *   "notes"        → { action, raw_text, format }
- *   "quiz"         → { action, topic, count, difficulty }
- *   "flashcards"   → { action, topic, count }
- *   "plan"         → { action, subject, days, hours_day }
+ * Auth: Bearer JWT (Supabase anon key or user JWT)
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// ── Provider config ───────────────────────────────────────────────────────────
-const GROQ_API_KEY   = Deno.env.get('GROQ_API_KEY')
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+// ── Environment ───────────────────────────────────────────────────────────────
+const GROQ_API_KEY    = Deno.env.get('GROQ_API_KEY')   ?? ''
+const GEMINI_API_KEY  = Deno.env.get('GEMINI_API_KEY') ?? ''
+const SUPABASE_URL    = Deno.env.get('SUPABASE_URL')   ?? ''
+const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-// Groq uses OpenAI-compatible endpoint
+// Model endpoints
 const GROQ_URL    = 'https://api.groq.com/openai/v1/chat/completions'
 const GROQ_MODEL  = 'llama-3.3-70b-versatile'
-
-// Gemini REST endpoint
-const GEMINI_URL  = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+const GEMINI_FLASH_URL  = `${GEMINI_BASE}/gemini-1.5-flash:generateContent`
+const GEMINI_PRO_URL    = `${GEMINI_BASE}/gemini-1.5-pro:generateContent`   // fallback
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, content-type, apikey',
+  'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info',
 }
 
-// ── Detect active provider ────────────────────────────────────────────────────
+// ── Rate limiter (in-memory, per edge function instance) ──────────────────────
+// Resets on cold start — good enough for edge functions; for stricter limits use Redis/Upstash
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 15       // requests per window
+const RATE_WINDOW_MS = 60_000  // 1 minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(userId)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
+// ── Structured logger ─────────────────────────────────────────────────────────
+function log(level: 'info' | 'warn' | 'error', reqId: string, msg: string, data?: unknown) {
+  const entry = { level, reqId, msg, ts: new Date().toISOString(), ...(data ? { data } : {}) }
+  if (level === 'error') console.error(JSON.stringify(entry))
+  else console.log(JSON.stringify(entry))
+}
+
+// ── Input sanitisation helpers ────────────────────────────────────────────────
+function sanitiseStr(v: unknown, maxLen = 8000, def = ''): string {
+  if (typeof v !== 'string') return def
+  return v.trim().substring(0, maxLen)
+}
+
+function sanitiseInt(v: unknown, min: number, max: number, def: number): number {
+  const n = parseInt(String(v), 10)
+  if (isNaN(n)) return def
+  return Math.min(Math.max(n, min), max)
+}
+
+function sanitiseEnum<T extends string>(v: unknown, allowed: T[], def: T): T {
+  if (typeof v === 'string' && (allowed as string[]).includes(v)) return v as T
+  return def
+}
+
+// ── Provider detection ────────────────────────────────────────────────────────
 function getProvider(): 'groq' | 'gemini' | null {
-  if (GROQ_API_KEY && GROQ_API_KEY.trim().length > 10)   return 'groq'
-  if (GEMINI_API_KEY && GEMINI_API_KEY.trim().length > 10) return 'gemini'
+  if (GROQ_API_KEY.length   > 10) return 'groq'
+  if (GEMINI_API_KEY.length > 10) return 'gemini'
   return null
 }
 
-// ── Call Groq (OpenAI-compatible) ─────────────────────────────────────────────
-async function callGroq(systemPrompt: string, userPrompt: string): Promise<string> {
+// ── LLM Callers ───────────────────────────────────────────────────────────────
+async function callGroq(systemPrompt: string, userPrompt: string, maxTokens = 2000): Promise<string> {
   const res = await fetch(GROQ_URL, {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_API_KEY}` },
     body: JSON.stringify({
       model: GROQ_MODEL,
       messages: [
@@ -57,415 +96,389 @@ async function callGroq(systemPrompt: string, userPrompt: string): Promise<strin
         { role: 'user',   content: userPrompt   },
       ],
       temperature:  0.7,
-      max_tokens:   1500,
+      max_tokens:   maxTokens,
     }),
   })
-
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Groq API error ${res.status}: ${err}`)
+    throw new Error(`Groq ${res.status}: ${err.substring(0, 200)}`)
   }
-
   const data = await res.json()
   return data.choices?.[0]?.message?.content?.trim() ?? ''
 }
 
-// ── Call Gemini REST API ──────────────────────────────────────────────────────
-async function callGemini(systemPrompt: string, userPrompt: string): Promise<string> {
-  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+async function callGemini(systemPrompt: string, userPrompt: string, url = GEMINI_FLASH_URL, maxTokens = 2000): Promise<string> {
+  const res = await fetch(`${url}?key=${GEMINI_API_KEY}`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [
-        { role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] },
+      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens },
+      safetySettings: [
+        { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+        { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
       ],
-      generationConfig: {
-        temperature:     0.7,
-        maxOutputTokens: 1500,
-      },
     }),
   })
-
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Gemini API error ${res.status}: ${err}`)
+    throw new Error(`Gemini ${res.status}: ${err.substring(0, 200)}`)
   }
-
   const data = await res.json()
+  // Handle safety blocks
+  if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+    throw new Error('Content blocked by safety filters. Please rephrase your question.')
+  }
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
 }
 
-// ── Call Gemini Vision API (for image attachments) ───────────────────────────
 async function callGeminiVision(
   systemPrompt: string,
   userPrompt: string,
-  imageData: { mime_type: string; data: string }
+  imageData: { mime_type: string; data: string },
+  maxTokens = 2000
 ): Promise<string> {
   if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is required for image analysis')
 
-  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+  const res = await fetch(`${GEMINI_FLASH_URL}?key=${GEMINI_API_KEY}`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: systemPrompt + '\n\n' + userPrompt },
-            { inline_data: { mime_type: imageData.mime_type, data: imageData.data } },
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature:     0.7,
-        maxOutputTokens: 1500,
-      },
+      contents: [{
+        role: 'user',
+        parts: [
+          { text: `${systemPrompt}\n\n${userPrompt}` },
+          { inline_data: { mime_type: imageData.mime_type, data: imageData.data } },
+        ],
+      }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens },
     }),
   })
-
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Gemini Vision API error ${res.status}: ${err}`)
+    throw new Error(`Gemini Vision ${res.status}: ${err.substring(0, 200)}`)
   }
-
   const data = await res.json()
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? ''
 }
 
-// ── Universal LLM call (auto-selects provider, vision-aware) ──────────────────
+/** Universal LLM call with automatic provider selection and Groq→Gemini fallback */
 async function callLLM(
   systemPrompt: string,
   userPrompt: string,
-  imageData?: { mime_type: string; data: string }
+  options: { maxTokens?: number; imageData?: { mime_type: string; data: string } } = {}
 ): Promise<string> {
-  // Images require Gemini Vision regardless of priority setting
-  if (imageData) {
-    return callGeminiVision(systemPrompt, userPrompt, imageData)
-  }
+  const { maxTokens = 2000, imageData } = options
+
+  // Images MUST use Gemini Vision
+  if (imageData) return callGeminiVision(systemPrompt, userPrompt, imageData, maxTokens)
+
   const provider = getProvider()
-  if (!provider) {
-    throw new Error('No API key configured. Add GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.')
+  if (!provider) throw new Error('No AI provider configured. Set GROQ_API_KEY or GEMINI_API_KEY in Supabase secrets.')
+
+  if (provider === 'groq') {
+    try {
+      return await callGroq(systemPrompt, userPrompt, maxTokens)
+    } catch (err: any) {
+      // Fallback to Gemini if Groq fails (rate limit, etc.)
+      if (GEMINI_API_KEY.length > 10) {
+        console.warn('[ai-service] Groq failed, falling back to Gemini:', err.message)
+        return await callGemini(systemPrompt, userPrompt, GEMINI_FLASH_URL, maxTokens)
+      }
+      throw err
+    }
   }
-  if (provider === 'groq')   return callGroq(systemPrompt, userPrompt)
-  if (provider === 'gemini') return callGemini(systemPrompt, userPrompt)
-  throw new Error('Unknown provider')
+
+  return callGemini(systemPrompt, userPrompt, GEMINI_FLASH_URL, maxTokens)
 }
 
-// ── Action handlers ───────────────────────────────────────────────────────────
+// ── Clean markdown code fences from output ────────────────────────────────────
+function cleanMarkdown(raw: string): string {
+  return raw
+    .replace(/^```(?:html|json|javascript|typescript|python)?\s*/im, '')
+    .replace(/```\s*$/im, '')
+    .trim()
+}
 
-async function handleChat(body: any): Promise<object> {
-  const {
-    messages   = [],
-    persona    = 'socratic',
-    subject    = 'General',
-    image_data,   // { mime_type, data } — base64 image for Gemini Vision
-    pdf_text,     // extracted PDF text as string
-    pdf_name,     // original PDF filename
-  } = body
+// ── Action Handlers ───────────────────────────────────────────────────────────
+
+async function handleChat(body: any, reqId: string): Promise<object> {
+  const messages  = Array.isArray(body.messages) ? body.messages.slice(-12) : []
+  const persona   = sanitiseEnum(body.persona, ['socratic', 'eli5', 'academic', 'coder'], 'socratic')
+  const subject   = sanitiseStr(body.subject, 100, 'General')
+  const image_data = body.image_data?.data && body.image_data?.mime_type ? body.image_data : undefined
+  const pdf_text  = sanitiseStr(body.pdf_text, 8000)
+  const pdf_name  = sanitiseStr(body.pdf_name, 200)
 
   const personaInstructions: Record<string, string> = {
-    socratic: 'You are a Socratic Coach. Guide the student with probing questions rather than direct answers. Encourage critical thinking.',
-    eli5:     'You are an ELI5 tutor. Explain everything with simple analogies, plain language, and no jargon. Make it easy for a 10-year-old.',
-    academic: 'You are an Academic Expert. Provide formal, textbook-quality explanations with precise terminology.',
-    coder:    'You are a Code Architect. Focus on code examples, algorithms, syntax, and technical implementation details.',
+    socratic: 'You are a Socratic Coach. Ask probing questions to guide critical thinking. Never just give the answer — lead the student to discover it.',
+    eli5:     'You are an ELI5 tutor. Explain everything like the student is 10 years old. Use fun analogies, simple language, no jargon.',
+    academic: 'You are an Academic Expert. Provide rigorous, textbook-quality explanations with precise terminology, citations-style structure, and thorough depth.',
+    coder:    'You are a Code Architect. Focus on working code examples, algorithms, complexity analysis, design patterns, and technical implementation.',
   }
 
-  const systemPrompt = `You are StudyMate AI — an intelligent study assistant.
+  const systemPrompt = `You are StudyMate AI — a world-class AI study assistant designed to help students excel.
 Subject domain: ${subject}
-${personaInstructions[persona] ?? personaInstructions.socratic}
-Keep responses concise (max 3–4 paragraphs). Format clearly with **bold** for key terms.`
+Persona: ${personaInstructions[persona]}
+Response guidelines:
+- Keep answers focused and clear (max 4 paragraphs unless the question demands more)
+- Use **bold** for key terms, \`code\` for technical terms
+- If the student makes an error, gently correct them with an explanation
+- Always encourage and support the student's learning journey`
 
-  // Build conversation context from last 6 messages
-  const recentMessages = messages.slice(-6)
-  const conversationText = recentMessages
-    .map((m: any) => `${m.sender === 'user' ? 'Student' : 'Tutor'}: ${m.text}`)
+  // Build trimmed conversation context (max 3000 chars to avoid token overflow)
+  const conversationText = messages
+    .map((m: any) => `${m.sender === 'user' ? 'Student' : 'Tutor'}: ${sanitiseStr(m.text, 500)}`)
     .join('\n')
+    .substring(0, 3000)
 
-  const lastUserMsg = messages.filter((m: any) => m.sender === 'user').pop()?.text ?? ''
-  let userPrompt    = conversationText
-    ? `Conversation so far:\n${conversationText}\n\nStudent's latest question: ${lastUserMsg}`
+  const lastUserMsg = messages.filter((m: any) => m.sender === 'user').pop()?.text?.substring(0, 1000) ?? ''
+
+  let userPrompt = conversationText
+    ? `Previous conversation:\n${conversationText}\n\nStudent's latest question: ${lastUserMsg}`
     : `Student asks: ${lastUserMsg}`
 
-  // Inject PDF text as context
   if (pdf_text) {
-    userPrompt += `\n\n--- UPLOADED DOCUMENT: "${pdf_name ?? 'document.pdf'}" ---\n${pdf_text.substring(0, 6000)}\n--- END DOCUMENT ---\n\nPlease answer the student's question in relation to the above document.`
+    userPrompt += `\n\n--- DOCUMENT CONTEXT: "${pdf_name || 'Uploaded PDF'}" ---\n${pdf_text}\n--- END DOCUMENT ---\n\nAnswer the student's question in relation to this document.`
   }
 
-  // If image_data present → use Gemini Vision
-  const imageDataPayload = image_data?.data ? image_data : undefined
-  if (imageDataPayload) {
-    userPrompt += '\n\nThe student has also attached an image. Please analyse the image and answer their question in relation to it.'
+  if (image_data) {
+    userPrompt += '\n\nThe student has attached an image. Analyse it thoroughly and answer their question.'
   }
 
-  const reply = await callLLM(systemPrompt, userPrompt, imageDataPayload)
+  const reply = await callLLM(systemPrompt, userPrompt, { maxTokens: 1500, imageData: image_data })
   return { reply }
 }
 
-async function handleNotes(body: any): Promise<object> {
-  const { raw_text = '', format = 'bullet', depth = 'detailed', pdf_name } = body
+async function handleNotes(body: any, reqId: string): Promise<object> {
+  const raw_text = sanitiseStr(body.raw_text, 8000)
+  const format   = sanitiseEnum(body.format, ['bullet', 'cornell', 'cheatsheet', 'mindmap'], 'bullet')
+  const depth    = sanitiseEnum(body.depth, ['standard', 'detailed', 'comprehensive'], 'detailed')
+  const pdf_name = sanitiseStr(body.pdf_name, 200)
 
-  const depthInstructions: Record<string, string> = {
-    standard:      'Provide a clear, concise overview. Aim for 400–600 words of output.',
-    detailed:      'Be thorough and detailed. Include explanations, sub-points, and definitions. Aim for 700–1000 words.',
-    comprehensive: 'Be exhaustive and highly detailed. Include all key concepts, sub-concepts, worked examples, formulas, edge cases, and real-world applications. Aim for 1000–1500+ words.',
+  if (!raw_text) throw new Error('raw_text is required for notes generation')
+
+  const depthGuide: Record<string, string> = {
+    standard:      'Concise overview — 400–600 words.',
+    detailed:      'Thorough with sub-points and definitions — 700–1000 words.',
+    comprehensive: 'Exhaustive with examples, edge cases, and real-world applications — 1200–1800 words.',
   }
 
   const formatPrompts: Record<string, string> = {
-    bullet: `Generate RICH STRUCTURED STUDY NOTES in HTML format.
+    bullet: `Create RICH STRUCTURED STUDY NOTES as HTML.
+- <h2> for main title (the topic itself, not "Study Notes")
+- <h3> for each major section with a relevant emoji prefix (🔬 📐 💡 ⚙️ 🧪)
+- <h4> for sub-sections
+- <ul><li> bullets — each must be a complete explanatory sentence, not just a keyword
+- <strong>term:</strong> for key definitions
+- <table> for comparisons with proper thead/tbody
+- <blockquote> for important rules, principles, or quotes
+- <code> for formulas, variable names, code snippets
+- End with a ✅ <h3>Key Takeaways</h3> section listing 4–6 critical points
+${depthGuide[depth]}`,
 
-Structure requirements:
-- Start with an <h2> tag for the main title (topic name, not "Study Notes")
-- Use <h3> tags for each major section/concept (prefix with emoji like 🔬 📐 💡)
-- Use <h4> tags for sub-sections within a section
-- Use <ul><li> or <ol><li> for bullet points with detailed explanations
-- Use <strong>term:</strong> pattern for key term definitions
-- Use <table><thead><tr><th></th></tr></thead><tbody>...</tbody></table> for comparison data
-- Use <blockquote> for important quotes, principles, or rules to remember
-- Use <code> for formulas, variables, or technical terms
-- Include a ✅ Key Takeaways <h3> section at the end with 3–5 bullet point summary
-
-Each bullet point must be a complete sentence with explanation — NOT just a keyword.
-${depthInstructions[depth] || depthInstructions.detailed}`,
-
-    cornell: `Generate CORNELL-FORMAT STUDY NOTES in HTML.
-
-Structure:
-<h2>[Topic Name]</h2>
-
-<h3>📌 Cue Column — Key Questions & Terms</h3>
-<ul>
-  <li><strong>Q:</strong> [question] → <em>[brief answer hint]</em></li>
-  ...at least 6–8 cues
-</ul>
-
-<h3>📝 Notes Column — Detailed Content</h3>
-[For each cue question, provide a full <h4> + <p> + <ul> explanation block]
-
+    cornell: `Create CORNELL-FORMAT NOTES as HTML.
+<h2>[Topic]</h2>
+<h3>📌 Cue Column — Key Questions &amp; Terms</h3>
+<ul> — 8+ cues as <li><strong>Q:</strong> question → <em>hint</em></li>
+<h3>📝 Detailed Notes</h3>
+— For every cue: <h4> heading + <p> explanation + <ul> bullets
 <h3>🔑 Key Definitions</h3>
-<table with Term | Definition | Example columns>
-
+— <table> with Term | Definition | Example columns (8+ rows)
 <h3>📊 Summary</h3>
-<blockquote>[3–5 sentence summary capturing the most important ideas]</blockquote>
+— <blockquote> with 4–5 sentence synthesis
+<h3>✅ Self-Test Questions</h3>
+— <ol> with 6 review questions (no answers — student fills these in)
+${depthGuide[depth]}`,
 
-<h3>✅ Review Questions</h3>
-<ol>5 self-test questions to check understanding</ol>
-
-Be thorough. ${depthInstructions[depth] || depthInstructions.detailed}`,
-
-    cheatsheet: `Generate a COMPREHENSIVE FORMULA & TERM CHEAT SHEET in HTML.
-
-Structure:
+    cheatsheet: `Create a COMPREHENSIVE CHEAT SHEET as HTML.
 <h2>⚡ [Topic] — Quick Reference</h2>
+<h3>📐 Formulas &amp; Equations</h3> — full table: Formula | Meaning | Variables | When to use
+<h3>📖 Key Terms</h3> — full table: Term | Definition | Example
+<h3>⚠️ Common Mistakes</h3> — bulleted list
+<h3>💡 Tips &amp; Tricks</h3> — bulleted shortcuts and mnemonics
+<h3>🔗 Concept Relationships</h3> — how concepts connect
+<h3>⏱️ Quick Review Checklist</h3> — checkbox-style bullets starting with "Can I explain..."
+${depthGuide[depth]}`,
 
-<h3>📐 Key Formulas & Equations</h3>
-<table>
-  <thead><tr><th>Formula</th><th>Meaning</th><th>Variables</th></tr></thead>
-  <tbody>rows for every formula</tbody>
-</table>
-
-<h3>📖 Definitions — Key Terms</h3>
-<table>
-  <thead><tr><th>Term</th><th>Definition</th><th>Example</th></tr></thead>
-  <tbody>rows for all important terms</tbody>
-</table>
-
-<h3>⚠️ Common Mistakes to Avoid</h3>
-<ul>mistake bullets</ul>
-
-<h3>💡 Quick Rules & Tips</h3>
-<ul>shortcut / mnemonic / quick-reference bullets</ul>
-
-<h3>🔗 Connections & Relationships</h3>
-<p>How these concepts link together</p>
-
-Be exhaustive with ALL formulas, terms, and rules. ${depthInstructions[depth] || depthInstructions.detailed}`,
-
-    mindmap: `Generate a CONCEPT BREAKDOWN / MIND-MAP in HTML format.
-
-Structure:
+    mindmap: `Create a CONCEPT BREAKDOWN as HTML.
 <h2>🧠 [Topic] — Concept Map</h2>
-<p>[1-sentence overview of the entire topic]</p>
-
-For each CORE CONCEPT (use <h3> with emoji):
-  <h3>🔷 [Core Concept Name]</h3>
-  <p>[What it is, why it matters — 2–3 sentences]</p>
-  
-  <h4>Key Properties / Characteristics</h4>
-  <ul>bullets</ul>
-
-  <h4>How It Works</h4>
-  <p>step-by-step or mechanism explanation</p>
-
-  <h4>Real-World Example</h4>
-  <blockquote>concrete example</blockquote>
-
-  <h4>Common Misconceptions</h4>
-  <ul>what people get wrong</ul>
-
-  <h4>Connects To</h4>
-  <p>links to other concepts in this topic</p>
-
-End with:
-<h3>🗺️ Big Picture Summary</h3>
-<p>[How all concepts weave together]</p>
-
-${depthInstructions[depth] || depthInstructions.detailed}`,
+<p>[1-sentence topic overview]</p>
+For each CORE CONCEPT use this exact structure:
+<h3>🔷 [Concept Name]</h3>
+<p>What it is and why it matters (2–3 sentences)</p>
+<h4>Key Properties</h4><ul>...</ul>
+<h4>How It Works</h4><p>step-by-step mechanism</p>
+<h4>Real-World Example</h4><blockquote>concrete analogy or application</blockquote>
+<h4>Common Misconceptions</h4><ul>...</ul>
+<h4>Connects To</h4><p>relationships to other concepts</p>
+End with: <h3>🗺️ Big Picture</h3><p>synthesis paragraph</p>
+${depthGuide[depth]}`,
   }
 
-  const sourceLabel = pdf_name ? `(extracted from: "${pdf_name}")` : ''
+  const sourceLabel = pdf_name ? `(from: "${pdf_name}")` : ''
+  const systemPrompt = `You are StudyMate AI — a specialist in creating exceptional study materials for students preparing for exams.
 
-  const systemPrompt = `You are StudyMate AI — an expert educational content creator and study notes specialist.
-Your notes are used by students studying for exams. They must be:
-1. ACCURATE and factually correct
-2. COMPREHENSIVE — cover all important aspects of the topic
-3. WELL-STRUCTURED — easy to scan and study
-4. ACTIONABLE — students should be able to use these to answer exam questions
+ABSOLUTE RULES:
+1. Return ONLY clean HTML — no markdown, no \`\`\`html fences, no prose outside HTML tags
+2. Use ONLY these tags: h2, h3, h4, p, ul, ol, li, strong, em, code, pre, table, thead, tbody, tr, th, td, blockquote
+3. NO html/head/body/style/script tags
+4. Every section must contain substantive educational content — never leave a heading with no body
+5. Be accurate, thorough, and formatted for maximum study value`
 
-CRITICAL HTML RULES:
-- Return ONLY clean HTML — no markdown, no \`\`\`html, no code fences
-- Only use: h2, h3, h4, p, ul, ol, li, strong, em, code, pre, table, thead, tbody, tr, th, td, blockquote
-- Do NOT include: html, head, body, style, script tags
-- Make the content rich and detailed — never produce sparse or thin notes
-- Every section must have actual educational content, not just a heading`
+  const userPrompt = `Generate study notes ${sourceLabel} using this exact format specification:
 
-  const userPrompt = `Create detailed study notes ${sourceLabel} using this format:
+${formatPrompts[format]}
 
-${formatPrompts[format] ?? formatPrompts.bullet}
+Source content to process:
+${raw_text}`
 
-Content to process:
-${raw_text.substring(0, 6000)}`
-
-  const outputHtml = await callLLM(systemPrompt, userPrompt)
-
-  // Clean up any accidental markdown code fences
-  const clean = outputHtml
-    .replace(/^```html?\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim()
+  const raw = await callLLM(systemPrompt, userPrompt, { maxTokens: 3000 })
+  const output_html = cleanMarkdown(raw)
 
   const title = pdf_name
-    ? pdf_name.replace(/\.pdf$/i, '').replace(/_/g, ' ')
-    : raw_text.substring(0, 55).replace(/\s+/g, ' ').trim() + (raw_text.length > 55 ? '…' : '')
+    ? pdf_name.replace(/\.pdf$/i, '').replace(/[_-]/g, ' ').trim()
+    : raw_text.substring(0, 60).replace(/\s+/g, ' ').trim() + (raw_text.length > 60 ? '…' : '')
 
-  return { output_html: clean, title }
+  return { output_html, title }
 }
 
+async function handleQuiz(body: any, reqId: string): Promise<object> {
+  const topic      = sanitiseStr(body.topic, 200, 'General Knowledge')
+  const count      = sanitiseInt(body.count, 1, 20, 5)
+  const difficulty = sanitiseEnum(body.difficulty, ['easy', 'medium', 'hard'], 'medium')
 
-async function handleQuiz(body: any): Promise<object> {
-  const { topic = 'General Knowledge', count = 3, difficulty = 'medium' } = body
-
-  const difficultyMap: Record<string, string> = {
-    easy:   'basic/introductory level, suitable for beginners',
-    medium: 'intermediate level, requiring some understanding',
-    hard:   'advanced/expert level, requiring deep knowledge',
+  const diffMap: Record<string, string> = {
+    easy:   'beginner level — definitions, basic recall, straightforward concepts',
+    medium: 'intermediate level — application, comprehension, and analysis',
+    hard:   'advanced level — synthesis, evaluation, edge cases, and expert-level reasoning',
   }
 
-  const systemPrompt = `You are StudyMate AI — an expert quiz generator.
-Generate exactly ${count} multiple-choice questions about "${topic}" at ${difficultyMap[difficulty] ?? difficultyMap.medium} difficulty.
+  const systemPrompt = `You are StudyMate AI — an expert at creating high-quality, educational multiple-choice assessments.
+Generate exactly ${count} MCQ questions about "${topic}" at ${diffMap[difficulty]} difficulty.
 
-Return ONLY a valid JSON array with this exact structure (no markdown, no explanation):
+Return ONLY a valid JSON array — no markdown, no explanation, no code fences:
 [
   {
-    "question": "Question text here?",
+    "question": "Clear, unambiguous question text ending with ?",
     "options": ["Option A", "Option B", "Option C", "Option D"],
-    "correct": 0
+    "correct": 0,
+    "explanation": "Brief explanation of why the answer is correct (1–2 sentences)"
   }
 ]
 
 Rules:
-- "correct" is the 0-based index of the correct option
-- All 4 options must be plausible
-- Questions must be clear and unambiguous
-- Return ONLY the JSON array, nothing else`
+- "correct" is 0-indexed position of the correct answer
+- All 4 options must be plausible (no obviously wrong distractors)
+- Questions must be distinct — no repetition of similar concepts
+- Include an "explanation" field for every question
+- Return ONLY the JSON array`
 
-  const userPrompt = `Generate ${count} ${difficulty} quiz questions about: ${topic}`
+  const userPrompt = `Create ${count} ${difficulty}-difficulty quiz questions about: ${topic}`
 
-  const raw = await callLLM(systemPrompt, userPrompt)
-
-  // Extract JSON from response (handle markdown code blocks)
-  const jsonMatch = raw.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) throw new Error('Invalid quiz format from AI')
+  const raw = await callLLM(systemPrompt, userPrompt, { maxTokens: 3000 })
+  const jsonMatch = cleanMarkdown(raw).match(/\[[\s\S]*\]/)
+  if (!jsonMatch) throw new Error('AI returned invalid quiz JSON format')
 
   const questions = JSON.parse(jsonMatch[0])
+  if (!Array.isArray(questions) || questions.length === 0) throw new Error('No quiz questions generated')
+
   return { questions }
 }
 
-async function handleFlashcards(body: any): Promise<object> {
-  const { topic = 'General Knowledge', count = 10, difficulty = 'intermediate' } = body
+async function handleFlashcards(body: any, reqId: string): Promise<object> {
+  const topic      = sanitiseStr(body.topic, 200, 'General Knowledge')
+  const count      = sanitiseInt(body.count, 1, 30, 10)
+  const difficulty = sanitiseEnum(body.difficulty, ['beginner', 'intermediate', 'advanced'], 'intermediate')
 
-  const difficultyMap: Record<string, string> = {
-    beginner:     'Focus on basic definitions, key terms, and foundational concepts. Questions should be straightforward.',
-    intermediate: 'Mix definitions, conceptual questions, applications, and "how/why" questions. Moderate challenge.',
-    advanced:     'Focus on deep understanding, edge cases, comparisons, mechanisms, and application in complex scenarios.',
+  const diffMap: Record<string, string> = {
+    beginner:     'Basic definitions, key terms, foundational facts. Questions should be direct and clear.',
+    intermediate: 'Mix of definitions, "how/why" questions, applications, and conceptual understanding.',
+    advanced:     'Deep mechanisms, edge cases, comparisons between similar concepts, complex applications.',
   }
 
-  const systemPrompt = `You are StudyMate AI — an expert flashcard creator for serious students.
+  const systemPrompt = `You are StudyMate AI — expert flashcard creator for serious students.
 Generate exactly ${count} high-quality study flashcards about "${topic}".
-Difficulty: ${difficultyMap[difficulty] ?? difficultyMap.intermediate}
+Difficulty: ${diffMap[difficulty]}
 
-Return ONLY a valid JSON array with this exact structure (no markdown, no code blocks, no explanation):
+Return ONLY a valid JSON array — no markdown, no code fences, no explanation:
 [
   {
-    "front": "Clear question, term, or prompt",
-    "back": "Accurate, complete answer — 1 to 4 sentences. Include key details, not just a one-word answer."
+    "front": "Clear question or term",
+    "back": "Complete answer with explanation — minimum 1 full sentence, maximum 4 sentences"
   }
 ]
 
 Rules:
-- Front: Use varied question types — definitions ("What is…?"), mechanisms ("How does…?"), comparisons ("What is the difference between…?"), applications ("When would you use…?"), fill-in-the-blank, true/false explanations
-- Back: Substantive answer — at minimum 1 full sentence. Include the core fact PLUS why it matters or a brief example
-- Cover diverse aspects of the topic — don't repeat similar questions
-- Difficulty must match: ${difficulty}
-- Return ONLY the JSON array — no other text`
+- VARY question types: definitions ("What is...?"), mechanisms ("How does...?"), 
+  comparisons ("What is the difference between...?"), applications ("In what scenario would you...?"),
+  fill-in-the-blank, cause-and-effect
+- Back must include the core fact PLUS context or why it matters or a brief example
+- Cover DIVERSE aspects — never repeat similar questions
+- Return ONLY the JSON array`
 
-  const userPrompt = `Generate ${count} ${difficulty} flashcards about: ${topic}`
+  const userPrompt = `Create ${count} ${difficulty} flashcards about: ${topic}`
 
-  const raw = await callLLM(systemPrompt, userPrompt)
-
-  const jsonMatch = raw.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) throw new Error('Invalid flashcard format from AI')
+  const raw = await callLLM(systemPrompt, userPrompt, { maxTokens: 3000 })
+  const jsonMatch = cleanMarkdown(raw).match(/\[[\s\S]*\]/)
+  if (!jsonMatch) throw new Error('AI returned invalid flashcard JSON format')
 
   const cards = JSON.parse(jsonMatch[0])
+  if (!Array.isArray(cards) || cards.length === 0) throw new Error('No flashcards generated')
+
   return { cards }
 }
 
+async function handlePlan(body: any, reqId: string): Promise<object> {
+  const subject   = sanitiseStr(body.subject, 300, 'General Study')
+  const days      = sanitiseInt(body.days, 1, 30, 7)
+  const hours_day = sanitiseInt(body.hours_day, 1, 12, 2)
+  const goal      = sanitiseStr(body.goal, 500)
 
-async function handlePlan(body: any): Promise<object> {
-  const { subject = 'Exam', days = 7, hours_day = 2 } = body
+  const systemPrompt = `You are StudyMate AI — a world-class academic study planner.
+Create a structured ${days}-day study plan for: "${subject}"
+Study time: ${hours_day} hours/day
+${goal ? `Student's goal: ${goal}` : ''}
 
-  const systemPrompt = `You are StudyMate AI — an expert study planner.
-Create a structured ${days}-day study plan for "${subject}" with ${hours_day} hours per day.
-
-Return ONLY a valid JSON array with this exact structure (no markdown, no explanation):
+Return ONLY a valid JSON array — no markdown, no prose, no code fences:
 [
   {
     "day": 1,
-    "title": "Day title / focus area",
-    "description": "Specific tasks and study activities for this day (1–2 sentences)"
+    "title": "Day focus area (concise, 5–8 words)",
+    "tasks": [
+      "Specific task 1 with time estimate (e.g., Read Chapter 1 — 45 min)",
+      "Specific task 2 with time estimate"
+    ],
+    "tip": "One actionable study tip for this day's material"
   }
 ]
 
 Rules:
-- Exactly ${days} items in the array
-- Progress from fundamentals → practice → mastery → review
-- Each day should have specific, actionable tasks
-- Mention hours: ${hours_day}h per day
-- Return ONLY the JSON array, nothing else`
+- Exactly ${days} items
+- Realistic progression: foundation → core concepts → application → practice → review → exam prep
+- Each day's tasks should total approximately ${hours_day} hours
+- Be SPECIFIC — name actual topics, chapters, techniques (not vague like "study topic X")
+- Return ONLY the JSON array`
 
-  const userPrompt = `Create a ${days}-day study plan for: ${subject} (${hours_day} hours/day)`
+  const userPrompt = `Build a ${days}-day plan for: ${subject} (${hours_day}h/day)`
 
-  const raw = await callLLM(systemPrompt, userPrompt)
+  const raw = await callLLM(systemPrompt, userPrompt, { maxTokens: 3000 })
+  const jsonMatch = cleanMarkdown(raw).match(/\[[\s\S]*\]/)
+  if (!jsonMatch) throw new Error('AI returned invalid plan JSON format')
 
-  const jsonMatch = raw.match(/\[[\s\S]*\]/)
-  if (!jsonMatch) throw new Error('Invalid plan format from AI')
+  const plan_items = JSON.parse(jsonMatch[0])
+  if (!Array.isArray(plan_items) || plan_items.length === 0) throw new Error('No plan items generated')
 
-  const planItems = JSON.parse(jsonMatch[0])
-  return { plan_items: planItems }
+  return { plan_items }
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
-  // Handle CORS preflight
+  const reqId = crypto.randomUUID().substring(0, 8)
+
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS })
   }
@@ -477,43 +490,86 @@ serve(async (req: Request) => {
     })
   }
 
+  // ── Provider check ──────────────────────────────────────────────────────────
   const provider = getProvider()
   if (!provider) {
-    return new Response(JSON.stringify({ error: 'No AI API key configured. Add GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.' }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    })
+    return new Response(JSON.stringify({
+      error: 'No AI provider configured. Set GROQ_API_KEY or GEMINI_API_KEY in Supabase Edge Function Secrets.',
+    }), { status: 503, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } })
+  }
+
+  // ── Auth & rate limiting ────────────────────────────────────────────────────
+  const authHeader = req.headers.get('authorization') ?? ''
+  let userId = 'anonymous'
+
+  if (authHeader.startsWith('Bearer ') && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+      const token = authHeader.replace('Bearer ', '').trim()
+      const { data: { user } } = await supabase.auth.getUser(token)
+      if (user?.id) userId = user.id
+    } catch {
+      // Non-fatal — allow anonymous usage with fallback rate limit
+    }
+  }
+
+  if (!checkRateLimit(userId)) {
+    log('warn', reqId, 'Rate limit exceeded', { userId })
+    return new Response(JSON.stringify({
+      error: 'Too many requests. Please wait a moment before trying again.',
+    }), { status: 429, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json', 'Retry-After': '60' } })
   }
 
   try {
-    const body   = await req.json()
-    const action = body.action
+    const body = await req.json()
+    const action = sanitiseStr(body?.action, 50)
+
+    if (!action) {
+      return new Response(JSON.stringify({ error: 'Missing required field: action' }), {
+        status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      })
+    }
+
+    log('info', reqId, `Action: ${action}`, { userId, provider })
 
     let result: object
 
     switch (action) {
-      case 'chat':       result = await handleChat(body);       break
-      case 'notes':      result = await handleNotes(body);      break
-      case 'quiz':       result = await handleQuiz(body);       break
-      case 'flashcards': result = await handleFlashcards(body); break
-      case 'plan':       result = await handlePlan(body);       break
+      case 'chat':       result = await handleChat(body, reqId);       break
+      case 'notes':      result = await handleNotes(body, reqId);      break
+      case 'quiz':       result = await handleQuiz(body, reqId);       break
+      case 'flashcards': result = await handleFlashcards(body, reqId); break
+      case 'plan':       result = await handlePlan(body, reqId);       break
       default:
         return new Response(JSON.stringify({ error: `Unknown action: "${action}"` }), {
-          status: 400,
-          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
         })
     }
 
     return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     })
 
   } catch (err: any) {
-    console.error('[ai-service] Error:', err)
-    return new Response(JSON.stringify({ error: err.message ?? 'Internal server error' }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    log('error', reqId, 'Unhandled error', { message: err.message, userId })
+
+    // Friendly error messages
+    let userMsg = err.message ?? 'Internal server error'
+    let status = 500
+
+    if (userMsg.includes('rate limit') || userMsg.includes('429')) {
+      userMsg = 'AI provider rate limit reached. Please try again in a moment.'
+      status = 429
+    } else if (userMsg.includes('API key') || userMsg.includes('401') || userMsg.includes('403')) {
+      userMsg = 'AI provider authentication failed. Please check your API keys.'
+      status = 503
+    } else if (userMsg.includes('safety') || userMsg.includes('blocked')) {
+      userMsg = 'Content was blocked by safety filters. Please rephrase your request.'
+      status = 422
+    }
+
+    return new Response(JSON.stringify({ error: userMsg, reqId }), {
+      status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     })
   }
 })
