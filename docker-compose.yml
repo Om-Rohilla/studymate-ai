@@ -1,0 +1,48 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# StudyMate AI — Docker Compose (Local Dev + Testing)
+# Usage:
+#   cp .env.example .env         # fill in your keys
+#   docker compose up --build    # starts on http://localhost:8080
+# ══════════════════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+  studymate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Passed at build time so Vite can embed them in the bundle
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    container_name: studymate-ai
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      # Runtime backend secrets (never in frontend bundle)
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SUPABASE_URL=${VITE_SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENV=production
+      - PORT=8080
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      # Persist uploads across container restarts
+      - studymate_uploads:/app/backend/uploads
+
+volumes:
+  studymate_uploads:
+    driver: local

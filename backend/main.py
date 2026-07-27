@@ -5,7 +5,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -52,9 +53,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ─────────────────────────────────────────────────────────────────────────────
 # CORS
 # ─────────────────────────────────────────────────────────────────────────────
+ENV = os.getenv("ENV", "development")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"] if ENV != "production" else [
+        os.getenv("FRONTEND_URL", "*")
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -148,9 +153,38 @@ def read_root():
     }
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Health Check (required by AWS App Runner / ALB)
+# ─────────────────────────────────────────────────────────────────────────────
+@app.get("/health", tags=["Health"])
+def health_check():
+    return {"status": "healthy", "app": "StudyMate AI", "version": "3.1.0"}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Serve Vite Static Build (production only)
+# API routes above take priority; this catches everything else
+# ─────────────────────────────────────────────────────────────────────────────
+STATIC_DIR = Path(__file__).parent / "static"
+
+if STATIC_DIR.exists():
+    # Mount assets (JS, CSS, images) at /assets
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets"), html=False), name="assets")
+
+    # SPA catch-all: any unknown route returns index.html so client-side routing works
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        index = STATIC_DIR / "index.html"
+        if index.exists():
+            return FileResponse(str(index))
+        return JSONResponse({"error": "Frontend not built. Run: npm run build"}, status_code=404)
+else:
+    logger.warning("Static frontend not found at %s. Running in API-only mode.", STATIC_DIR)
+
+
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    host = os.getenv("HOST", "127.0.0.1")
-    logger.info("Starting server on %s:%s", host, port)
-    uvicorn.run("main:app", host=host, port=port, reload=True)
+    port = int(os.getenv("PORT", 8080))
+    host = os.getenv("HOST", "0.0.0.0")
+    logger.info("Starting StudyMate AI on %s:%s", host, port)
+    uvicorn.run("main:app", host=host, port=port, reload=(ENV != "production"))

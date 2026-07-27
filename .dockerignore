@@ -1,0 +1,47 @@
+# ── Node / npm ──────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/.env
+frontend/dist/
+
+# ── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# ── Git / IDE ────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.agents/
+.gemini/
+*.md
+
+# ── Environment files (secrets!) ────────────────────────────────────────────
+.env
+backend/.env
+*.env.*
+!.env.example
+
+# ── Uploads / temp ──────────────────────────────────────────────────────────
+backend/uploads/
+*.sqlite
+*.db
+
+# ── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

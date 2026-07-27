@@ -1,0 +1,31 @@
+version: 1
+runtime: python312
+
+build:
+  commands:
+    build:
+      # 1. Install Node.js and npm
+      - curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+      - yum install -y nodejs
+      # 2. Build the Vite frontend
+      - cd frontend && npm ci --no-audit && npm run build && cd ..
+      # 3. Copy built frontend to backend static folder
+      - mkdir -p backend/static
+      - cp -r frontend/dist/. backend/static/
+      # 4. Install Python dependencies
+      - pip install -r backend/requirements.txt
+
+run:
+  runtime-version: 3.12
+  command: uvicorn backend.main:app --host 0.0.0.0 --port 8080 --workers 2
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: ENV
+      value: production
+    - name: PORT
+      value: "8080"
+  # Add your secrets via AWS App Runner Console → Environment Variables
+  # Required: GROQ_API_KEY, GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET
+  # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY must be set as build-time env vars

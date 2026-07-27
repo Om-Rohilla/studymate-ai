@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Project Concept Note</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #ffffff;
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 18mm 22mm;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 8mm 0 12mm;
+      border-bottom: 3px solid #4f46e5;
+      margin-bottom: 10mm;
+    }
+
+    .cover-badge {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      font-size: 9pt;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 10mm;
+    }
+
+    .cover h1 {
+      font-size: 28pt;
+      font-weight: 800;
+      color: #1a1a2e;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 3mm;
+    }
+
+    .cover h1 span { color: #4f46e5; }
+
+    .cover .subtitle {
+      font-size: 13pt;
+      color: #4b5563;
+      font-weight: 400;
+      margin-bottom: 8mm;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 9pt;
+      color: #6b7280;
+    }
+
+    .cover-meta span { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Sections ── */
+    h2 {
+      font-size: 13pt;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 7mm 0 3mm;
+      padding-bottom: 1.5mm;
+      border-bottom: 2px solid #e5e7eb;
+      letter-spacing: -0.01em;
+    }
+
+    h2::before {
+      content: attr(data-n) " ";
+      color: #4f46e5;
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #374151;
+      margin: 4mm 0 1.5mm;
+    }
+
+    p { margin-bottom: 2.5mm; color: #374151; }
+
+    ul, ol {
+      padding-left: 5mm;
+      margin-bottom: 3mm;
+      color: #374151;
+    }
+
+    li { margin-bottom: 1mm; }
+
+    /* ── Info boxes ── */
+    .info-box {
+      background: #f0f4ff;
+      border-left: 3.5px solid #4f46e5;
+      border-radius: 0 6px 6px 0;
+      padding: 3mm 5mm;
+      margin: 3mm 0;
+      font-size: 9.5pt;
+    }
+
+    .info-box strong { color: #1a1a2e; }
+
+    /* ── 2-column grid ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+      margin: 3mm 0;
+    }
+
+    .card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 3.5mm 4.5mm;
+    }
+
+    .card h3 { color: #4f46e5; font-size: 9.5pt; margin-bottom: 1mm; }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin: 3mm 0;
+    }
+
+    th {
+      background: #4f46e5;
+      color: white;
+      font-weight: 600;
+      padding: 2mm 3mm;
+      text-align: left;
+    }
+
+    td { padding: 2mm 3mm; border-bottom: 1px solid #e5e7eb; }
+    tr:nth-child(even) td { background: #f9fafb; }
+
+    /* ── Tech stack pills ── */
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 2mm 0; }
+
+    .pill {
+      background: #ede9fe;
+      color: #4338ca;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+
+    .pill.green { background: #d1fae5; color: #065f46; }
+    .pill.blue  { background: #dbeafe; color: #1d4ed8; }
+    .pill.orange { background: #ffedd5; color: #9a3412; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 4mm 5mm;
+      margin: 3mm 0;
+      font-family: monospace;
+      font-size: 8.5pt;
+      line-height: 1.9;
+      color: #1a1a2e;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 10mm;
+      padding-top: 4mm;
+      border-top: 1px solid #e5e7eb;
+      font-size: 8.5pt;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 15mm 18mm; }
+      h2 { page-break-after: avoid; }
+      .two-col { page-break-inside: avoid; }
+      .no-break { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ COVER ═══ -->
+<div class="cover">
+  <div class="cover-badge">Vibe Coding Masterclass — Project Concept Note</div>
+  <h1>StudyMate <span>AI</span></h1>
+  <p class="subtitle">Your AI-Powered Academic Study Companion</p>
+  <div class="cover-meta">
+    <span>📅 July 2026</span>
+    <span>🧑‍💻 Full-Stack AI Web Application</span>
+    <span>☁️ AWS App Runner Deployment</span>
+    <span>🤖 Groq LLaMA 3.3 + Gemini 1.5 Flash</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ 1. PROJECT TITLE ═══ -->
+<h2 data-n="1.">Project Title &amp; Application Name</h2>
+
+<div class="info-box">
+  <strong>Project Title:</strong> StudyMate AI — AI-Powered Academic Study Companion<br>
+  <strong>Application URL:</strong> <em>[AWS App Runner URL — inserted after deployment]</em><br>
+  <strong>Repository:</strong> https://github.com/shireendevgunn/Studymate-AI
+</div>
+
+<!-- ═══════════════════════════════════════════ 2. PROBLEM STATEMENT ═══ -->
+<h2 data-n="2.">Problem Statement / Objective</h2>
+
+<p>Students today are overwhelmed with information but under-supported in processing it. Traditional study tools — flashcard apps, PDF readers, quiz websites — work in isolation and require significant manual effort to create study materials. Students spend hours summarising lectures, making flashcards, and hunting for practice questions when they should be spending that time actually learning.</p>
+
+<p>Additionally, hiring a personal tutor is costly, and generic AI chatbots like ChatGPT are not designed specifically for structured academic study — they lack context management, persona adaptation, multi-format note generation, and a cohesive study workflow.</p>
+
+<p><strong>StudyMate AI solves this</strong> by being a single, cohesive AI-native study workspace where students can:</p>
+<ul>
+  <li>Paste a topic or upload a document (PDF/image) and instantly get structured notes in multiple formats</li>
+  <li>Generate unlimited quiz questions at different difficulty levels with explanations</li>
+  <li>Create flashcard decks for spaced repetition learning</li>
+  <li>Get personalised tutoring from an AI that adapts its teaching style (Socratic, ELI5, Academic, Coder)</li>
+  <li>Plan a full study schedule with a day-by-day breakdown of tasks</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════ 3. TARGET USER ═══ -->
+<h2 data-n="3.">Target User &amp; Use Case</h2>
+
+<div class="two-col">
+  <div class="card">
+    <h3>👩‍🎓 University Students</h3>
+    <p>Preparing for semester exams, summarising lecture PDFs, generating practice MCQs for self-testing.</p>
+  </div>
+  <div class="card">
+    <h3>📚 Self-Learners</h3>
+    <p>Professionals upskilling in new domains (coding, data science, finance) who need structured content quickly.</p>
+  </div>
+  <div class="card">
+    <h3>🏫 High School Students</h3>
+    <p>Studying for board exams, using ELI5 mode for complex topics, creating flashcards for vocabulary.</p>
+  </div>
+  <div class="card">
+    <h3>🧑‍💻 Developers</h3>
+    <p>Learning new technologies using the Coder persona for code-focused, implementation-oriented explanations.</p>
+  </div>
+</div>
+
+<p><strong>Primary use case:</strong> A student uploads a 20-page chemistry PDF → StudyMate generates Cornell-format notes, 15 MCQ questions, 20 flashcards, and a 7-day revision plan — all in under 2 minutes.</p>
+
+<!-- ═══════════════════════════════════════════ 4. LLM MODEL ═══ -->
+<h2 data-n="4.">LLM Model &amp; API Used</h2>
+
+<table>
+  <thead>
+    <tr><th>Provider</th><th>Model</th><th>Role</th><th>API</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Groq</td><td>LLaMA 3.3 70B Versatile</td><td>Primary — chat, notes, quiz, flashcards, planner</td><td>OpenAI-compatible REST API</td></tr>
+    <tr><td>Google Gemini</td><td>Gemini 1.5 Flash</td><td>Fallback + Vision — image analysis, PDF grounding</td><td>Google Generative Language API</td></tr>
+    <tr><td>OpenAI</td><td>GPT-4o</td><td>FastAPI backend (streaming tutor, document analysis)</td><td>OpenAI Chat Completions API</td></tr>
+  </tbody>
+</table>
+
+<div class="info-box">
+  <strong>Automatic Fallback Chain:</strong> The AI service tries Groq first (fastest, free). If it fails (rate limit, downtime), it automatically switches to Gemini 1.5 Flash. For image/PDF vision tasks, Gemini 1.5 Flash is used directly. All API keys are stored server-side — never exposed to the browser.
+</div>
+
+<!-- ═══════════════════════════════════════════ 5. KEY FEATURES ═══ -->
+<h2 data-n="5.">Key Features of the Application</h2>
+
+<div class="two-col no-break">
+  <div>
+    <h3>🧠 AI Tutor</h3>
+    <ul>
+      <li>Multi-session persistent chat history</li>
+      <li>4 AI personas: Socratic, ELI5, Academic, Coder</li>
+      <li>Image attachment (Gemini Vision)</li>
+      <li>PDF upload with text extraction</li>
+      <li>Subject tagging per session</li>
+    </ul>
+
+    <h3>📝 AI Notes Generator</h3>
+    <ul>
+      <li>4 formats: Bullet, Cornell, Cheat Sheet, Mind Map</li>
+      <li>3 depth levels: Standard, Detailed, Comprehensive</li>
+      <li>PDF &amp; Word document export</li>
+      <li>PDF upload as source material</li>
+    </ul>
+
+    <h3>🃏 Flashcard Studio</h3>
+    <ul>
+      <li>3D flip animation cards</li>
+      <li>Difficulty rating (Hard / Okay / Easy)</li>
+      <li>3 difficulty levels: Beginner / Intermediate / Advanced</li>
+      <li>Multiple saved decks per user</li>
+    </ul>
+  </div>
+
+  <div>
+    <h3>📊 Quiz Generator</h3>
+    <ul>
+      <li>Multiple-choice questions with explanations</li>
+      <li>3 difficulty levels: Easy / Medium / Hard</li>
+      <li>Score tracking with history</li>
+      <li>Instant feedback per answer</li>
+    </ul>
+
+    <h3>📅 Study Planner</h3>
+    <ul>
+      <li>AI-generated day-by-day study plans</li>
+      <li>Configurable: 1–30 days, 1–12 hours/day</li>
+      <li>Goal-aware planning</li>
+      <li>Visual calendar-style display</li>
+    </ul>
+
+    <h3>🏆 Gamification</h3>
+    <ul>
+      <li>XP points system (earn on quizzes)</li>
+      <li>Level progression (500 XP per level)</li>
+      <li>Study streak tracking 🔥</li>
+      <li>Dashboard with live stats</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ 6. TECH STACK ═══ -->
+<h2 data-n="6.">Application Architecture &amp; Tech Stack</h2>
+
+<div class="arch">
+Browser (User)
+    │
+    ▼  HTTPS
+┌──────────────────────────────────────────────────────────────┐
+│  AWS App Runner (Container)  ← port 8080                     │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │  FastAPI (Python 3.12)  — uvicorn, 2 workers           │  │
+│  │  • Serves static Vite build (HTML/CSS/JS)              │  │
+│  │  • /api/* routes: auth, tutor, notes, quiz, etc.       │  │
+│  │  • Rate limiting (slowapi)                             │  │
+│  │  • Streaming SSE responses                             │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌─────────────────┐  ┌──────────────────────────────────┐   │
+│  │  Vite Frontend  │  │  Docker Image (ECR or inline)    │   │
+│  │  (static build) │  │  Multi-stage: Node→Python        │   │
+│  └─────────────────┘  └──────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────┘
+    │                               │
+    ▼                               ▼
+Supabase (BaaS)              AI Providers
+  • PostgreSQL + RLS           • Groq (LLaMA 3.3)  [primary]
+  • Auth (JWT, Google)         • Gemini Flash       [fallback]
+  • Edge Functions             • OpenAI GPT-4o      [streaming]
+  • Storage (future)
+</div>
+
+<table>
+  <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Frontend</td><td>Vanilla HTML5 / CSS3 / JavaScript (ES Modules)</td><td>UI — multi-page app, no framework overhead</td></tr>
+    <tr><td>Build Tool</td><td>Vite 8</td><td>Bundles, minifies, tree-shakes for production</td></tr>
+    <tr><td>Backend</td><td>Python 3.12 + FastAPI</td><td>API routing, auth, file processing, AI proxy</td></tr>
+    <tr><td>AI Gateway</td><td>Supabase Edge Functions (Deno)</td><td>Serverless AI proxy with rate limiting</td></tr>
+    <tr><td>Database</td><td>Supabase PostgreSQL + RLS</td><td>All user data with row-level security</td></tr>
+    <tr><td>Auth</td><td>Supabase Auth (JWT + Google OAuth)</td><td>Secure user authentication</td></tr>
+    <tr><td>Container</td><td>Docker (multi-stage build)</td><td>Reproducible, portable deployment</td></tr>
+    <tr><td>Cloud</td><td>AWS App Runner</td><td>Auto-scaling, HTTPS, managed containers</td></tr>
+    <tr><td>Primary AI</td><td>Groq LLaMA 3.3 70B</td><td>Fast inference, free tier</td></tr>
+    <tr><td>Vision AI</td><td>Google Gemini 1.5 Flash</td><td>Image + PDF multimodal analysis</td></tr>
+  </tbody>
+</table>
+
+<div class="pills">
+  <span class="pill">Python FastAPI</span>
+  <span class="pill">Vite</span>
+  <span class="pill">JavaScript ES2024</span>
+  <span class="pill green">Supabase</span>
+  <span class="pill green">PostgreSQL</span>
+  <span class="pill blue">Docker</span>
+  <span class="pill blue">AWS App Runner</span>
+  <span class="pill orange">Groq LLaMA 3.3</span>
+  <span class="pill orange">Gemini 1.5 Flash</span>
+  <span class="pill orange">OpenAI GPT-4o</span>
+</div>
+
+<!-- ═══════════════════════════════════════════ 7. USER EXPERIENCE ═══ -->
+<h2 data-n="7.">Expected User Experience &amp; Outcomes</h2>
+
+<h3>User Journey</h3>
+<ol>
+  <li><strong>Sign up / Login</strong> — Email/password or Google OAuth via Supabase Auth → profile auto-created</li>
+  <li><strong>Dashboard</strong> — Greeted with stats (chats, notes, quiz avg score, study streak 🔥)</li>
+  <li><strong>AI Tutor</strong> — Ask a question, get a response in ≤3s (Groq speed). Switch personas. Attach a PDF or image. All chats auto-saved to sidebar.</li>
+  <li><strong>Notes</strong> — Paste topic or upload PDF → choose format + depth → rich structured HTML notes generated → download as PDF or Word</li>
+  <li><strong>Quiz</strong> — Pick topic, difficulty, count → answer MCQs → instant feedback + explanation → score saved to history</li>
+  <li><strong>Flashcards</strong> — Generate a deck by topic → 3D flip cards → rate each card → track known vs review</li>
+  <li><strong>Planner</strong> — Input subject + days + hours/day → get a complete day-by-day study plan</li>
+</ol>
+
+<h3>Outcomes</h3>
+<ul>
+  <li>Students reduce time spent making study materials by <strong>70–80%</strong></li>
+  <li>Consistent daily usage encouraged by streak system and XP gamification</li>
+  <li>Multi-format notes accommodate different learning styles (visual, structured, reference)</li>
+  <li>Study plans create accountability and structure for exam preparation</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════ 8. SECURITY ═══ -->
+<h2 data-n="8.">Security &amp; Best Practices</h2>
+
+<ul>
+  <li><strong>API keys never in frontend:</strong> All LLM API keys are environment variables injected at runtime into the backend container. The frontend only stores the Supabase anon key (which has no privileges — all access is controlled by RLS policies)</li>
+  <li><strong>Row Level Security (RLS):</strong> Every Supabase table has RLS enabled. Users can only read/write their own rows — enforced at the database level, not just application code</li>
+  <li><strong>Rate limiting:</strong> Both the Supabase Edge Function (15 req/min per user) and FastAPI backend (slowapi) have rate limiting to prevent abuse</li>
+  <li><strong>Input sanitisation:</strong> All AI request parameters are sanitised and length-bounded before being sent to AI providers</li>
+  <li><strong>JWT auth:</strong> All protected routes require a valid Supabase JWT token. Tokens are verified server-side</li>
+  <li><strong>Docker non-root user:</strong> Container runs as a dedicated <code>studymate</code> user, not root</li>
+  <li><strong>No secrets in version control:</strong> <code>.env</code> is gitignored. AWS secrets are injected via App Runner environment variables</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════ 9. AWS DEPLOYMENT ═══ -->
+<h2 data-n="9.">AWS Deployment Plan</h2>
+
+<table>
+  <thead><tr><th>Step</th><th>Action</th><th>AWS Service</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Push Docker image to registry</td><td>Amazon ECR (Elastic Container Registry)</td></tr>
+    <tr><td>2</td><td>Create App Runner service from ECR image</td><td>AWS App Runner</td></tr>
+    <tr><td>3</td><td>Configure environment variables (secrets)</td><td>App Runner → Environment Variables</td></tr>
+    <tr><td>4</td><td>Auto-scaling: 1–5 instances based on traffic</td><td>App Runner (built-in)</td></tr>
+    <tr><td>5</td><td>HTTPS provided automatically</td><td>App Runner (free TLS)</td></tr>
+    <tr><td>6</td><td>Set AWS Budget Alert ($5/month)</td><td>AWS Budgets</td></tr>
+  </tbody>
+</table>
+
+<div class="info-box">
+  <strong>Estimated AWS Cost:</strong> AWS App Runner free tier includes 2M requests/month and 100 compute hours. For a student project, total cost should be <strong>$0–$5/month</strong> on the free tier. Budget alerts are configured to notify at $5.
+</div>
+
+<!-- ═══════════════════════════════════════════ FOOTER ═══ -->
+<div class="footer">
+  StudyMate AI — Project Concept Note &nbsp;|&nbsp; Vibe Coding Masterclass &nbsp;|&nbsp; July 2026<br>
+  Built with AI-assisted development (Antigravity IDE) · Groq · Gemini · Supabase · AWS
+</div>
+
+</body>
+</html>
