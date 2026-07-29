@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Adaptive Study Planner</title>
+
+  <style>
+    /* Wave canvas */
+    #planner-wave-canvas {
+      position: fixed; bottom: 0; left: 0;
+      width: 100vw; height: 45vh;
+      z-index: 0; pointer-events: none;
+    }
+
+    main {
+      max-width: 950px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .planner-card {
+      background: rgba(12, 15, 24, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .select-input, .text-input {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0.55rem 0.75rem;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      transition: var(--transition);
+    }
+
+    .select-input:focus, .text-input:focus {
+      outline: none;
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+    }
+    .text-input::placeholder { color: rgba(255,255,255,0.2); }
+
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .timeline-item {
+      background: rgba(12, 15, 24, 0.75);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .day-badge {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 90px;
+      padding: 0.85rem 1.2rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 2.5px solid transparent;
+      background-image: linear-gradient(rgba(12,15,24,0.9), rgba(12,15,24,0.9)),
+                        linear-gradient(160deg, #6366f1, #a855f7);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .day-badge::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 15%; bottom: 15%;
+      width: 2.5px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #6366f1, #a855f7);
+    }
+    .day-badge-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(160,140,255,0.7);
+      line-height: 1;
+      margin-bottom: 0.15rem;
+    }
+    .day-badge-num {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    /* ── Enhanced day card layout ── */
+    .timeline-item {
+      background: rgba(12, 15, 24, 0.75);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 1.35rem 1.5rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .timeline-item.day-complete {
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.07);
+    }
+
+    .day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+    .day-header-left { display: flex; align-items: center; gap: 0.65rem; }
+
+    /* ── Day progress bar ── */
+    .day-progress-wrap {
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .day-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #6366f1, #10b981);
+      transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .day-progress-label {
+      font-size: 0.68rem;
+      font-weight: 300;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+    .day-progress-label.all-done { color: #10b981; font-weight: 600; }
+
+    /* ── Checklist tasks ── */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      cursor: pointer;
+      padding: 0.55rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: background 0.18s, border-color 0.18s;
+      user-select: none;
+    }
+    .task-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+    .task-item.checked { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.15); }
+
+    /* Custom checkbox */
+    .task-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      background: rgba(255,255,255,0.03);
+    }
+    .task-item.checked .task-check {
+      background: #10b981;
+      border-color: #10b981;
+      transform: scale(1.08);
+    }
+    .task-check svg {
+      width: 10px; height: 10px;
+      stroke: #ffffff;
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .task-item.checked .task-check svg { opacity: 1; transform: scale(1); }
+
+    .task-text {
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: var(--text-main);
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+    .task-item.checked .task-text {
+      color: var(--text-dim);
+      text-decoration: line-through;
+      text-decoration-color: rgba(255,255,255,0.2);
+    }
+
+    /* Bullet dot for unchecked */
+    .task-bullet {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      flex-shrink: 0;
+      margin-top: 7px;
+      transition: background 0.2s;
+    }
+    .task-item.checked .task-bullet { background: #10b981; }
+
+    /* Complete badge */
+    .complete-badge {
+      display: none;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #10b981;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .complete-badge.visible { display: flex; }
+    .complete-badge svg { width: 12px; height: 12px; stroke: #10b981; fill: none; stroke-width: 2.5; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/planner-Bshfg_i0.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-client-ByXZZmbi.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-helper-CowPKJcP.js">
+  <link rel="modulepreload" crossorigin href="/assets/db-nXN2EJa5.js">
+  <link rel="modulepreload" crossorigin href="/assets/auth-guard-CxreNMEC.js">
+  <link rel="stylesheet" crossorigin href="/assets/supabase-client-DF7nl1xG.css">
+</head>
+<body>
+
+  <canvas id="planner-wave-canvas"></canvas>
+  <div class="bg-grain"></div>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-badge">AI</div>
+        <span>StudyMate</span>
+      </a>
+
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html" class="active">Planner</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="planner-card">
+      <h2 style="font-size: 1.35rem; color:#ffffff; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; background: linear-gradient(135deg, #ffffff 30%, #a1a1ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Generate Study Schedule</h2>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.2rem;">Custom adaptive milestones for your upcoming exam target date.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="exam-name">Exam Subject</label>
+          <input type="text" id="exam-name" class="text-input" placeholder="e.g. CS Midterm...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="exam-days">Days Until Exam</label>
+          <select id="exam-days" class="select-input">
+            <option value="3">3 Days (Sprint)</option>
+            <option value="7">7 Days (Balanced)</option>
+            <option value="14">14 Days (Deep Dive)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="daily-hours">Hours per Day</label>
+          <select id="daily-hours" class="select-input">
+            <option value="1">1 Hour / Day</option>
+            <option value="2">2 Hours / Day</option>
+            <option value="4">4 Hours / Day</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="generate-plan-btn" style="margin-top:1.25rem;">
+        <span style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Create Schedule</span>
+      </button>
+    </div>
+
+    <div class="timeline-container" id="timeline-container">
+    </div>
+  </main>
+
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('planner-wave-canvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+      const VERT = `precision mediump float; attribute vec2 a_position; varying vec2 vUv; void main() { vUv = 0.5*(a_position+1.0); gl_Position = vec4(a_position,0.0,1.0); }`;
+      const FRAG = `
+        precision mediump float; varying vec2 vUv; uniform float u_time;
+        float wave(vec2 uv,float freq,float speed,float amp){return sin(uv.x*freq+u_time*speed)*amp;}
+        void main(){
+          float w1=wave(vUv,6.0,1.2,0.06); float w2=wave(vUv,9.5,-0.9,0.04);
+          float w3=wave(vUv,14.0,1.8,0.025); float w4=wave(vUv,20.0,-2.1,0.015);
+          float wl=vUv.y+w1+w2+w3+w4;
+          float fadeIn=smoothstep(0.0,0.25,vUv.y); float fadeOut=1.0-smoothstep(0.7,1.0,vUv.y);
+          float mask=fadeIn*fadeOut;
+          float b1=exp(-abs(wl-0.38)*28.0); float b2=exp(-abs(wl-0.42)*40.0); float b3=exp(-abs(wl-0.35)*18.0)*0.5;
+          vec3 col=vec3(0.0,0.01,0.06);
+          col+=vec3(0.05,0.15,1.0)*b1*mask*1.4; col+=vec3(0.0,0.5,1.0)*b2*mask*1.1; col+=vec3(0.3,0.8,1.0)*b3*mask*0.8;
+          float vg=smoothstep(0.0,0.45,vUv.y)*(1.0-smoothstep(0.55,1.0,vUv.y));
+          col+=vec3(0.0,0.02,0.15)*vg;
+          float alpha=clamp((b1+b2*0.7+b3)*mask*2.5+vg*0.15,0.0,1.0);
+          gl_FragColor=vec4(col,alpha);
+        }
+      `;
+      function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x;}
+      const p=gl.createProgram();
+      gl.attachShader(p,sh(gl.VERTEX_SHADER,VERT)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FRAG));
+      gl.linkProgram(p); gl.useProgram(p);
+      const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      const l=gl.getAttribLocation(p,'a_position');
+      gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      const uT=gl.getUniformLocation(p,'u_time');
+      function resize(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=window.innerWidth*dpr;canvas.height=canvas.offsetHeight*dpr;gl.viewport(0,0,canvas.width,canvas.height);}
+      window.addEventListener('resize',resize); resize();
+      const t0=performance.now();
+      (function r(){gl.uniform1f(uT,(performance.now()-t0)*0.001);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);requestAnimationFrame(r);})();
+    })();
+  </script>
+</body>
+</html>

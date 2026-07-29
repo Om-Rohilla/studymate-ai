@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Contact & Support</title>
+
+  <style>
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .contact-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 2rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .input-field, .textarea-field {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+
+    .textarea-field {
+      height: 110px;
+      resize: vertical;
+    }
+
+    .input-field:focus, .textarea-field:focus {
+      outline: none;
+      border-color: var(--border-hover);
+      background: var(--bg-input-focus);
+    }
+
+    .status-msg {
+      display: none;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/supabase-client-ByXZZmbi.js"></script>
+  <script type="module" crossorigin src="/assets/auth-helper-CowPKJcP.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/supabase-client-DF7nl1xG.css">
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-badge">AI</div>
+        <span>StudyMate</span>
+      </a>
+
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+        <a href="contact.html" class="active">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="contact-card">
+      <h1 style="font-size: 1.5rem; margin-bottom: 0.3rem;">Contact & Support</h1>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Have questions or feedback? Send our team a message.</p>
+
+      <div class="status-msg" id="status-msg">Thank you! Your message has been sent successfully.</div>
+
+      <form id="contact-form">
+        <div class="form-group">
+          <label class="form-label" for="contact-name">Name</label>
+          <input type="text" id="contact-name" class="input-field" placeholder="Alex Morgan" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="contact-email">Email Address</label>
+          <input type="email" id="contact-email" class="input-field" placeholder="alex@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="contact-message">Message</label>
+          <textarea id="contact-message" class="textarea-field" placeholder="How can we help you?" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="display:block; width:fit-content; min-width:180px; margin:0 auto;">
+          <span>Send Message</span>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbar = document.getElementById('navbar');
+    menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
+
+    const contactForm = document.getElementById('contact-form');
+    const statusMsg = document.getElementById('status-msg');
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      statusMsg.style.display = 'block';
+      contactForm.reset();
+    });
+  </script>
+</body>
+</html>

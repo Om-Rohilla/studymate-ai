@@ -1,0 +1,1 @@
+import{t as e}from"./supabase-client-ByXZZmbi.js";(async function(){let{data:{session:t}}=await e.auth.getSession();if(!t){let e=encodeURIComponent(window.location.pathname+window.location.search);window.location.replace(`login.html?returnTo=${e}`)}})();

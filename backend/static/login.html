@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — Authentication Studio</title>
+
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    #login-neuro-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.95;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 2rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #ffffff;
+      text-decoration: none;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      padding: 3px;
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .google-btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: #ffffff;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: var(--transition);
+      margin-bottom: 1.25rem;
+      font-family: var(--font-body);
+    }
+
+    .google-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
+    }
+
+    .google-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 1.25rem 0;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .divider span { padding: 0 0.75rem; }
+
+    .form-group { margin-bottom: 1rem; }
+
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .input-field {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.6rem 0.85rem;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      transition: var(--transition);
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--border-hover);
+      background: var(--bg-input-focus);
+    }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .error-msg {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .success-msg {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/login-CLr9oaHm.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/supabase-client-ByXZZmbi.js">
+  <link rel="stylesheet" crossorigin href="/assets/supabase-client-DF7nl1xG.css">
+</head>
+<body>
+
+  <div class="bg-grain"></div>
+  <canvas id="login-neuro-canvas"></canvas>
+
+  <main>
+    <div class="auth-card">
+      <div class="auth-header">
+        <a href="index.html" class="auth-logo">
+          <span class="logo-badge">AI</span>
+          <span>StudyMate</span>
+        </a>
+
+        <div class="tab-switcher">
+          <button class="tab-btn active" id="tab-signin">Sign In</button>
+          <button class="tab-btn" id="tab-signup">Create Account</button>
+        </div>
+
+        <h2 style="font-size: 1.2rem; margin-bottom: 0.2rem;" id="form-heading">Welcome back</h2>
+        <p style="font-size: 0.78rem; color: var(--text-muted);" id="form-subheading">Enter your credentials to access your AI study studio.</p>
+      </div>
+
+      <!-- Error / Success alerts -->
+      <div class="error-msg"   id="error-msg"></div>
+      <div class="success-msg" id="success-msg"></div>
+
+      <!-- Google OAuth -->
+      <button class="google-btn" id="google-sso-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="divider"><span>Or with Email</span></div>
+
+      <form id="auth-form">
+        <!-- Name field (signup only) -->
+        <div class="form-group" id="name-group" style="display:none;">
+          <label class="form-label" for="full-name">Full Name</label>
+          <input type="text" id="full-name" class="input-field" placeholder="Alex Morgan">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" class="input-field" placeholder="alex@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="input-field" placeholder="••••••••" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-primary submit-btn" id="submit-btn">
+          <span id="submit-text">Sign In</span>
+        </button>
+      </form>
+    </div>
+  </main>
+
+
+  <!-- WebGL Neural Vortex Shader Background (Identical to Landing Page) -->
+  <script>
+    (function () {
+      const canvas = document.getElementById('login-neuro-canvas');
+      if (!canvas) return;
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return;
+
+      const VERT = `
+        precision mediump float;
+        attribute vec2 a_position;
+        varying vec2 vUv;
+        void main() {
+          vUv = 0.5 * (a_position + 1.0);
+          gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+      `;
+
+      const FRAG = `
+        precision mediump float;
+        varying vec2 vUv;
+        uniform float u_time;
+        uniform float u_ratio;
+        uniform vec2 u_pointer_position;
+
+        vec2 rotate(vec2 uv, float th) {
+          return mat2(cos(th), sin(th), -sin(th), cos(th)) * uv;
+        }
+
+        float neuro_shape(vec2 uv, float t, float p) {
+          vec2 sine_acc = vec2(0.);
+          vec2 res = vec2(0.);
+          float scale = 8.;
+          for (int j = 0; j < 15; j++) {
+            uv = rotate(uv, 1.);
+            sine_acc = rotate(sine_acc, 1.);
+            vec2 layer = uv * scale + float(j) + sine_acc - t;
+            sine_acc += sin(layer) + 2.4 * p;
+            res += (.5 + .5 * cos(layer)) / scale;
+            scale *= (1.2);
+          }
+          return res.x + res.y;
+        }
+
+        void main() {
+          vec2 uv = .5 * vUv;
+          uv.x *= u_ratio;
+          vec2 pointer = vUv - u_pointer_position;
+          pointer.x *= u_ratio;
+          float p = clamp(length(pointer), 0., 1.);
+          p = .5 * pow(1. - p, 2.);
+          float t = .001 * u_time;
+          vec3 color = vec3(0.);
+          float noise = neuro_shape(uv, t, p);
+          noise = 1.2 * pow(noise, 3.);
+          noise += pow(noise, 10.);
+          noise = max(.0, noise - .5);
+          noise *= (1. - length(vUv - .5));
+          color = vec3(0.5, 0.15, 0.65);
+          color = mix(color, vec3(0.02, 0.7, 0.9), 0.32);
+          color += vec3(0.15, 0.0, 0.6);
+          color = color * noise;
+          gl_FragColor = vec4(color, noise);
+        }
+      `;
+
+      function compileShader(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+          console.error('Shader error:', gl.getShaderInfoLog(s));
+        return s;
+      }
+      const prog = gl.createProgram();
+      gl.attachShader(prog, compileShader(gl.VERTEX_SHADER,   VERT));
+      gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, FRAG));
+      gl.linkProgram(prog);
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(prog, 'a_position');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+      const uTime    = gl.getUniformLocation(prog, 'u_time');
+      const uRatio   = gl.getUniformLocation(prog, 'u_ratio');
+      const uPointer = gl.getUniformLocation(prog, 'u_pointer_position');
+
+      const pointer = { x: 0.5, y: 0.5, tX: 0.5, tY: 0.5 };
+      window.addEventListener('pointermove', e => {
+        pointer.tX = e.clientX / window.innerWidth;
+        pointer.tY = e.clientY / window.innerHeight;
+      });
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width  = window.innerWidth  * dpr;
+        canvas.height = window.innerHeight * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform1f(uRatio, canvas.width / canvas.height);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      (function render() {
+        pointer.x += (pointer.tX - pointer.x) * 0.2;
+        pointer.y += (pointer.tY - pointer.y) * 0.2;
+        gl.uniform1f(uTime, performance.now());
+        gl.uniform2f(uPointer, pointer.x, 1.0 - pointer.y);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        requestAnimationFrame(render);
+      })();
+    })();
+  </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 # StudyMate AI — AWS Deployment Guide
+
 # Complete step-by-step guide to deploy on AWS App Runner
 
 ## Architecture Overview
+
 ```
 Browser → AWS App Runner (port 8080)
              │
@@ -19,23 +21,27 @@ Browser → AWS App Runner (port 8080)
 ## Option A: Deploy via Docker Image (Recommended for Assessment)
 
 ### Prerequisites
+
 - AWS Account (free tier)
 - Docker installed locally
 - AWS CLI installed: `pip install awscli`
 
 ### Step 1: Configure AWS CLI
+
 ```bash
 aws configure
 # Enter: Access Key ID, Secret Access Key, Region (us-east-1), Output (json)
 ```
 
 ### Step 2: Create ECR Repository
+
 ```bash
 aws ecr create-repository --repository-name studymate-ai --region us-east-1
 # Note the repositoryUri from the output
 ```
 
 ### Step 3: Build & Push Docker Image
+
 ```bash
 # Get your AWS account ID
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -59,6 +65,7 @@ docker push "${ECR_URI}:latest"
 ```
 
 ### Step 4: Create App Runner Service (AWS Console)
+
 1. Go to: **AWS Console → App Runner → Create Service**
 2. **Source:** Container registry → Amazon ECR
 3. **Image URI:** `<your-ecr-uri>:latest`
@@ -125,6 +132,7 @@ open http://localhost:8080
 - [ ] AWS Budget Alert configured ($5 threshold)
 
 ### Set Budget Alert
+
 ```bash
 aws budgets create-budget \
   --account-id $(aws sts get-caller-identity --query Account --output text) \
@@ -148,25 +156,25 @@ aws budgets create-budget \
 
 ## Estimated AWS Costs (Free Tier)
 
-| Service | Free Tier | Estimated Use |
-|---------|-----------|---------------|
-| App Runner | 2M req + 100 compute hours/month | < $1/month |
-| ECR | 500 MB storage | Free |
-| Data Transfer | 15 GB outbound | Free |
-| **Total** | | **$0–$5/month** |
+| Service         | Free Tier                        | Estimated Use          |
+| --------------- | -------------------------------- | ---------------------- |
+| App Runner      | 2M req + 100 compute hours/month | < $1/month             |
+| ECR             | 500 MB storage                   | Free                   |
+| Data Transfer   | 15 GB outbound                   | Free                   |
+| **Total** |                                  | **$0–$5/month** |
 
 ---
 
 ## Environment Variables Reference
 
-| Variable | Required | Where to Get |
-|----------|----------|-------------|
-| `VITE_SUPABASE_URL` | ✅ Build-time | Supabase Dashboard → Settings → API |
-| `VITE_SUPABASE_ANON_KEY` | ✅ Build-time | Supabase Dashboard → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Runtime | Supabase Dashboard → Settings → API |
-| `GROQ_API_KEY` | ✅ Runtime | console.groq.com → API Keys |
-| `GEMINI_API_KEY` | ✅ Runtime | aistudio.google.com → Get API Key |
-| `OPENAI_API_KEY` | Optional | platform.openai.com → API Keys |
-| `JWT_SECRET` | ✅ Runtime | Generate: `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `ENV` | Optional | Set to `production` |
-| `PORT` | Optional | Default: `8080` |
+| Variable                      | Required      | Where to Get                                                          |
+| ----------------------------- | ------------- | --------------------------------------------------------------------- |
+| `VITE_SUPABASE_URL`         | ✅ Build-time | Supabase Dashboard → Settings → API                                 |
+| `VITE_SUPABASE_ANON_KEY`    | ✅ Build-time | Supabase Dashboard → Settings → API                                 |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Runtime    | Supabase Dashboard → Settings → API                                 |
+| `GROQ_API_KEY`              | ✅ Runtime    | console.groq.com → API Keys                                          |
+| `GEMINI_API_KEY`            | ✅ Runtime    | aistudio.google.com → Get API Key                                    |
+| `OPENAI_API_KEY`            | Optional      | platform.openai.com → API Keys                                       |
+| `JWT_SECRET`                | ✅ Runtime    | Generate:`python -c "import secrets; print(secrets.token_hex(32))"` |
+| `ENV`                       | Optional      | Set to`production`                                                  |
+| `PORT`                      | Optional      | Default:`8080`                                                      |

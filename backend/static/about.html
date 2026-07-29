@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyMate AI — About</title>
+
+  <style>
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/supabase-client-ByXZZmbi.js"></script>
+  <script type="module" crossorigin src="/assets/auth-helper-CowPKJcP.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/supabase-client-DF7nl1xG.css">
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <div class="logo-badge">AI</div>
+        <span>StudyMate</span>
+      </a>
+
+      <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+
+      <nav id="navbar">
+        <a href="index.html">Home</a>
+        <a href="tutor.html">AI Tutor</a>
+        <a href="notes.html">Notes</a>
+        <a href="quiz.html">Quiz</a>
+        <a href="flashcards.html">Flashcards</a>
+        <a href="planner.html">Planner</a>
+        <a href="about.html" class="active">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="about-card">
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.85rem;">About StudyMate AI</h1>
+      <p style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.25rem;">StudyMate AI is engineered for students who demand high efficiency. By combining cognitive science principles—such as active recall, Socratic questioning, and spaced repetition—with state-of-the-art language models, StudyMate transforms raw lecture slides and textbooks into interactive learning experiences.</p>
+      <p style="font-size: 0.88rem; line-height: 1.6;">Whether you are preparing for medical board exams, computer science algorithms, or university finals, StudyMate AI empowers you to study smarter and achieve higher retention in less time.</p>
+    </div>
+  </main>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const navbar = document.getElementById('navbar');
+    menuToggle.addEventListener('click', () => navbar.classList.toggle('mobile-active'));
+  </script>
+</body>
+</html>
