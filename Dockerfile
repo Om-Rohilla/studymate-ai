@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy the backend code + pre-built frontend (in backend/static/)
 COPY backend/ ./backend/
 
+# Set working directory to INSIDE backend so 'from routes import x' works
+WORKDIR /app/backend
+
 # Ownership
 RUN chown -R studymate:studymate /app
 
@@ -40,4 +43,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run from /app/backend — so relative imports like 'from routes import tutor' work
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
