@@ -107,6 +107,10 @@ app.include_router(planner.router,       prefix="/api", tags=["Study Planner"])
 # ─────────────────────────────────────────────────────────────────────────────
 @app.get("/", tags=["Health"])
 def read_root():
+    """Serve the production frontend when it is bundled with the API."""
+    index = Path(__file__).parent / "static" / "index.html"
+    if index.exists():
+        return FileResponse(index)
     return {
         "status": "online",
         "app": "StudyMate AI Backend",
