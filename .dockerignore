@@ -31,6 +31,7 @@ env/
 backend/.env
 *.env.*
 !.env.example
+!frontend/.env.production
 
 # ── Uploads / temp ──────────────────────────────────────────────────────────
 backend/uploads/
