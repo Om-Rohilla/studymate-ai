@@ -175,9 +175,20 @@ if STATIC_DIR.exists():
     # Mount assets (JS, CSS, images) at /assets
     app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets"), html=False), name="assets")
 
-    # SPA catch-all: any unknown route returns index.html so client-side routing works
+    # Serve each Vite multi-page entry point (for example /login.html) before
+    # falling back to the landing page.  Previously every path returned
+    # index.html, which made the login and feature URLs appear broken.
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa(full_path: str):
+        requested = (STATIC_DIR / full_path).resolve()
+        try:
+            requested.relative_to(STATIC_DIR.resolve())
+        except ValueError:
+            return JSONResponse({"error": "Not found"}, status_code=404)
+
+        if requested.is_file():
+            return FileResponse(str(requested))
+
         index = STATIC_DIR / "index.html"
         if index.exists():
             return FileResponse(str(index))
