@@ -19,6 +19,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
   auth: {
     persistSession:    true,   // keeps session in localStorage automatically
     autoRefreshToken:  true,   // silently refreshes JWTs before expiry
-    detectSessionInUrl: true,  // needed for OAuth (Google) redirect
+    // PKCE returns a one-time authorization code, rather than exposing an
+    // access token in the OAuth redirect URL. Supabase exchanges it locally.
+    detectSessionInUrl: true,
+    flowType: 'pkce',
   },
 })
