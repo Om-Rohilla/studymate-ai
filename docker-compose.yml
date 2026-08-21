@@ -18,7 +18,9 @@ services:
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
     container_name: studymate-ai
     ports:
-      - "8080:8080"
+      # Elastic Beanstalk serves public HTTP on port 80; local development
+      # retains port 8080 unless HOST_PORT is explicitly overridden.
+      - "${HOST_PORT:-8080}:8080"
     env_file:
       - .env
     environment:
