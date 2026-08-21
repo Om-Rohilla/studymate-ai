@@ -2,8 +2,8 @@
 # StudyMate AI — production container for Amazon ECR / AWS App Runner
 #
 # The frontend is built inside the image so the deployed artifact always matches
-# the committed source. VITE_* values are public browser configuration, supplied
-# only as Docker build arguments.
+# the committed source. Its public Supabase browser configuration lives in
+# frontend/.env.production; server-side secrets are never baked into the image.
 # ══════════════════════════════════════════════════════════════════════════════
 
 FROM node:20-bookworm-slim AS frontend-build
@@ -14,11 +14,6 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit
 
 COPY frontend/ ./
-
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
-    VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
 
 RUN npm run build
 
