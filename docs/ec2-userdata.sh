@@ -1,6 +1,8 @@
 #!/bin/bash
-# StudyMate AI — EC2 Auto-Setup Script
-# Paste this entire script into EC2 "User data" when launching
+# Legacy EC2 setup reference.
+#
+# Production deployment uses Docker -> ECR -> App Runner instead. Do not place
+# credentials in EC2 user data: it is retrievable by processes on the instance.
 
 exec > /var/log/studymate-setup.log 2>&1
 set -e
@@ -14,10 +16,8 @@ apt-get install -y nodejs
 git clone https://github.com/shireendevgunn/Studymate-AI.git /opt/studymate
 cd /opt/studymate
 
-cat > /opt/studymate/frontend/.env << 'EOF'
-VITE_SUPABASE_URL=https://rfeirfwtlmlyebfqmnen.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmZWlyZnd0bG1seWViZnFtbmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzODkzOTQsImV4cCI6MjA5OTk2NTM5NH0.Nj_0WL4x6xksgyfoJ4nnMoI3WsB-fef-uywVRDJ-Cdg
-EOF
+# Create frontend/.env securely outside this script if this legacy option is
+# ever used. VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required.
 
 cd /opt/studymate/frontend
 npm ci --no-audit
@@ -32,12 +32,8 @@ pip install --upgrade pip
 pip install -r requirements.txt
 deactivate
 
-cat > /opt/studymate/backend/.env.prod << 'EOF'
-GEMINI_API_KEY=AQ.Ab8RN6IXGkc-psiILR9x_CG19K0FEq2cUArir4wer_XgrTj3ZA
-JWT_SECRET=PtMj3+YbFoIeiWXI8DgYjB55Z0SscjpBJkaz3K5ntyKcyWrQz77bvDy4l2qAglxZhMJyWfq/On+eO0MxjmIFJw==
-ENV=production
-PORT=8080
-EOF
+# Create backend/.env.prod securely outside this script if this legacy option
+# is ever used. At minimum it needs a fresh JWT_SECRET and one AI provider key.
 
 cat > /etc/systemd/system/studymate.service << 'EOF'
 [Unit]

@@ -1,12 +1,26 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# StudyMate AI — Dockerfile for AWS Elastic Beanstalk
+# StudyMate AI — production container for Amazon ECR / AWS App Runner
 #
-# IMPORTANT: Run this BEFORE building Docker:
-#   cd frontend && npm run build
-#   cp -r frontend/dist/. backend/static/
-#
-# Then the Dockerfile just runs the Python backend which serves the pre-built frontend.
+# The frontend is built inside the image so the deployed artifact always matches
+# the committed source. VITE_* values are public browser configuration, supplied
+# only as Docker build arguments.
 # ══════════════════════════════════════════════════════════════════════════════
+
+FROM node:20-bookworm-slim AS frontend-build
+
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit
+
+COPY frontend/ ./
+
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL} \
+    VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+
+RUN npm run build
 
 FROM python:3.12-slim
 
@@ -26,8 +40,9 @@ COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# Copy the backend code + pre-built frontend (in backend/static/)
+# Copy the backend code and the frontend built above.
 COPY backend/ ./backend/
+COPY --from=frontend-build /app/frontend/dist/ ./backend/static/
 
 # Set working directory to INSIDE backend so 'from routes import x' works
 WORKDIR /app/backend

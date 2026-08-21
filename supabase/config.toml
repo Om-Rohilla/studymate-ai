@@ -10,4 +10,6 @@ enabled = true
 site_url = "http://127.0.0.1:5173"
 
 [functions.ai-service]
-verify_jwt = false
+# AI generation is a paid, authenticated feature. Reject anonymous invocations
+# at the platform layer before the function reaches an AI provider.
+verify_jwt = true

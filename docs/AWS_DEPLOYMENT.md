@@ -20,6 +20,10 @@ Browser → AWS App Runner (port 8080)
 
 ## Option A: Deploy via Docker Image (Recommended for Assessment)
 
+This is the production deployment route for this repository. The Dockerfile
+builds the frontend and FastAPI service together; do not use the legacy EC2
+script for production.
+
 ### Prerequisites
 
 - AWS Account (free tier)
