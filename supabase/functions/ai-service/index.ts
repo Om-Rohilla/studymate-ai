@@ -24,7 +24,9 @@ const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
 // Model endpoints
 const GROQ_URL    = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_MODEL  = 'llama-3.3-70b-versatile'
+// Llama 3.3 70B was retired for this Groq account tier. Use Groq's current
+// recommended production replacement instead.
+const GROQ_MODEL  = 'openai/gpt-oss-120b'
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 const GEMINI_FLASH_URL  = `${GEMINI_BASE}/gemini-1.5-flash:generateContent`
 const GEMINI_PRO_URL    = `${GEMINI_BASE}/gemini-1.5-pro:generateContent`   // fallback
