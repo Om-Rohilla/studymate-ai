@@ -250,20 +250,25 @@ CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
 -- ─────────────────────────────────────────────────────────────────────────
 -- 10. DASHBOARD STATS VIEW (fast aggregated stats for homepage)
 -- ─────────────────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW public.dashboard_stats AS
+-- security_invoker preserves the caller's RLS policies. The view deliberately
+-- starts from public.profiles rather than auth.users so no auth schema data is
+-- exposed through the public API.
+DROP VIEW IF EXISTS public.dashboard_stats;
+CREATE VIEW public.dashboard_stats WITH (security_invoker = true) AS
 SELECT
-  u.id                                         AS user_id,
-  (SELECT COUNT(*) FROM public.chat_sessions  cs WHERE cs.user_id = u.id) AS chat_count,
-  (SELECT COUNT(*) FROM public.notes          n  WHERE n.user_id  = u.id) AS note_count,
-  (SELECT COUNT(*) FROM public.quiz_sessions  qs WHERE qs.user_id = u.id) AS quiz_count,
-  (SELECT COUNT(*) FROM public.planner_plans  pp WHERE pp.user_id = u.id) AS plan_count,
-  (SELECT COUNT(*) FROM public.flashcard_decks fd WHERE fd.user_id = u.id) AS deck_count,
-  (SELECT AVG(score_pct)::integer FROM public.quiz_sessions qs WHERE qs.user_id = u.id AND qs.created_at > now() - interval '30 days') AS avg_score_30d,
+  p.id                                         AS user_id,
+  (SELECT COUNT(*) FROM public.chat_sessions  cs WHERE cs.user_id = p.id) AS chat_count,
+  (SELECT COUNT(*) FROM public.notes          n  WHERE n.user_id  = p.id) AS note_count,
+  (SELECT COUNT(*) FROM public.quiz_sessions  qs WHERE qs.user_id = p.id) AS quiz_count,
+  (SELECT COUNT(*) FROM public.planner_plans  pp WHERE pp.user_id = p.id) AS plan_count,
+  (SELECT COUNT(*) FROM public.flashcard_decks fd WHERE fd.user_id = p.id) AS deck_count,
+  (SELECT AVG(score_pct)::integer FROM public.quiz_sessions qs WHERE qs.user_id = p.id AND qs.created_at > now() - interval '30 days') AS avg_score_30d,
   up.study_streak,
   up.xp_points,
   up.level
-FROM auth.users u
-LEFT JOIN public.user_progress up ON up.user_id = u.id;
+FROM public.profiles p
+LEFT JOIN public.user_progress up ON up.user_id = p.id
+WHERE p.id = (SELECT auth.uid());
 
--- Grant select to authenticated users (RLS on underlying tables handles data isolation)
+-- Grant select to authenticated users; RLS on the underlying tables applies.
 GRANT SELECT ON public.dashboard_stats TO authenticated;
