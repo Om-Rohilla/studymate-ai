@@ -17,7 +17,9 @@ build:
 
 run:
   runtime-version: 3.12
-  command: uvicorn backend.main:app --host 0.0.0.0 --port 8080 --workers 2
+  # The backend uses top-level imports (routes/, services/, models/), so expose
+  # backend/ as Uvicorn's application directory when App Runner starts at repo root.
+  command: uvicorn main:app --app-dir backend --host 0.0.0.0 --port 8080 --workers 2
   network:
     port: 8080
     env: PORT
@@ -28,4 +30,4 @@ run:
       value: "8080"
   # Add your secrets via AWS App Runner Console → Environment Variables
   # Required: GROQ_API_KEY, GEMINI_API_KEY, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET
-  # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY must be set as build-time env vars
+  # The public VITE_* browser configuration is versioned in frontend/.env.production.
